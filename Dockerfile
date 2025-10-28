@@ -3,7 +3,7 @@
 FROM public.ecr.aws/lambda/python:3.13
 
 # Copy application code
-COPY src/ ${LAMBDA_TASK_ROOT}/
+COPY planner_agent/ ${LAMBDA_TASK_ROOT}/
 COPY requirements.txt ${LAMBDA_TASK_ROOT}/
 
 # Install dependencies into the Lambda task root so they are available at runtime
