@@ -3,7 +3,7 @@ name: Build & Deploy Lambda (ECR image)
 
 on:
   push:
-    branches: [ main ]    # change if needed
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -62,31 +62,86 @@ jobs:
       run: |
         docker push "${{ env.FULL_TAG }}"
 
-    - name: Update Lambda to use new image
+      # --- Update / Publish / Alias (robust handling for Zip vs Image functions) ---
+    - name: Update/Create Lambda (image-aware)
+      env:
+        AWS_REGION: ${{ env.AWS_REGION }}
+        LAMBDA_NAME: ${{ env.LAMBDA_NAME }}
+        IMAGE_URI: ${{ env.FULL_TAG }}            # previously set earlier in workflow
+        LAMBDA_EXEC_ROLE_ARN: ${{ secrets.LAMBDA_EXEC_ROLE_ARN }}  # set this secret to your Lambda exec role ARN
       run: |
-        IMAGE_URI="${{ env.FULL_TAG }}"
-        echo "Updating Lambda ${LAMBDA_NAME} to image ${IMAGE_URI}"
-        aws lambda update-function-code \
-          --function-name "${LAMBDA_NAME}" \
-          --image-uri "${IMAGE_URI}" \
-          --region "${{env.AWS_REGION}}"
+        set -euo pipefail
 
-    - name: Publish new version
-      id: publish
-      run: |
-        VERSION=$(aws lambda publish-version --function-name "${LAMBDA_NAME}" --region "${{env.AWS_REGION}}" --query 'Version' --output text)
-        echo "NEW_LAMBDA_VERSION=${VERSION}" >> $GITHUB_ENV
-        echo "Published version: ${VERSION}"
+        echo "Using AWS region: $AWS_REGION"
+        echo "Target Lambda name: $LAMBDA_NAME"
+        echo "Image to deploy: $IMAGE_URI"
 
-    - name: Update or create prod alias
-      run: |
-        VERSION="${{ env.NEW_LAMBDA_VERSION }}"
-        if aws lambda get-alias --function-name "${LAMBDA_NAME}" --name prod --region "${{env.AWS_REGION}}" >/dev/null 2>&1; then
-          aws lambda update-alias --function-name "${LAMBDA_NAME}" --name prod --function-version "${VERSION}" --region "${{env.AWS_REGION}}"
-          echo "Updated alias prod -> ${VERSION}"
+        # check current package type
+        pkg_type=$(aws lambda get-function --function-name "$LAMBDA_NAME" --region "$AWS_REGION" --query 'Configuration.PackageType' --output text 2>/dev/null || echo "NOT_FOUND")
+        echo "Detected packageType: $pkg_type"
+
+        if [ "$pkg_type" = "Image" ]; then
+          echo "Function is Image-based — updating image URI..."
+          aws lambda update-function-code --function-name "$LAMBDA_NAME" --image-uri "$IMAGE_URI" --region "$AWS_REGION"
+          TARGET_NAME="$LAMBDA_NAME"
+
+        elif [ "$pkg_type" = "Zip" ]; then
+          # Do not overwrite the Zip function. Create a new image-based function for safe migration.
+          NEW_NAME="${LAMBDA_NAME}-image-${GITHUB_RUN_ID}"
+          echo "Function is Zip-type. Creating Image-based function named ${NEW_NAME} (non-destructive)..."
+
+          aws lambda create-function \
+            --function-name "${NEW_NAME}" \
+            --package-type Image \
+            --code ImageUri="${IMAGE_URI}" \
+            --role "${LAMBDA_EXEC_ROLE_ARN}" \
+            --region "${AWS_REGION}"
+
+          TARGET_NAME="$NEW_NAME"
+
+        elif [ "$pkg_type" = "NOT_FOUND" ]; then
+          echo "Function not found — creating new Image-based function ${LAMBDA_NAME}..."
+          aws lambda create-function \
+            --function-name "${LAMBDA_NAME}" \
+            --package-type Image \
+            --code ImageUri="${IMAGE_URI}" \
+            --role "${LAMBDA_EXEC_ROLE_ARN}" \
+            --region "${AWS_REGION}"
+          TARGET_NAME="$LAMBDA_NAME"
+
         else
-          aws lambda create-alias --function-name "${LAMBDA_NAME}" --name prod --function-version "${VERSION}" --region "${{env.AWS_REGION}}"
-          echo "Created alias prod -> ${VERSION}"
+          echo "Unexpected packageType: $pkg_type" >&2
+          exit 1
+        fi
+
+        echo "Target function for publish: $TARGET_NAME"
+        # export the target name for next steps (optional)
+        echo "DEPLOYED_FUNCTION=${TARGET_NAME}" >> $GITHUB_ENV
+
+    - name: Publish new version & update/create prod alias
+      env:
+        AWS_REGION: ${{ env.AWS_REGION }}
+        LAMBDA_NAME: ${{ env.LAMBDA_NAME }}
+      run: |
+        set -euo pipefail
+
+        # Use the function that was just created/updated
+        TARGET_NAME=${DEPLOYED_FUNCTION:-${LAMBDA_NAME}}
+
+        echo "Publishing version for function: $TARGET_NAME"
+        VERSION=$(aws lambda publish-version --function-name "$TARGET_NAME" --region "$AWS_REGION" --query 'Version' --output text)
+        echo "Published version: $VERSION"
+
+        # export version for later steps
+        echo "NEW_LAMBDA_VERSION=$VERSION" >> $GITHUB_ENV
+
+        # create or update alias 'prod'
+        if aws lambda get-alias --function-name "$TARGET_NAME" --name prod --region "$AWS_REGION" >/dev/null 2>&1; then
+          aws lambda update-alias --function-name "$TARGET_NAME" --name prod --function-version "$VERSION" --region "$AWS_REGION"
+          echo "Updated alias prod -> $VERSION for $TARGET_NAME"
+        else
+          aws lambda create-alias --function-name "$TARGET_NAME" --name prod --function-version "$VERSION" --region "$AWS_REGION"
+          echo "Created alias prod -> $VERSION for $TARGET_NAME"
         fi
 
     - name: Sleep briefly to allow new image to be available (tiny buffer)
