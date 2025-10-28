@@ -7,7 +7,7 @@ import json, os, logging
 from botocore.exceptions import ClientError
 
 from planner_agent.orchestrator.orchestrator import plan_itinerary
-from planner_agent.tools.s3io import put_json, get_json
+from planner_agent.tools.s3io import get_json
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

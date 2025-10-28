@@ -6,7 +6,6 @@ import os
 from typing import Dict, Any, Optional
 import json
 
-from planner_agent.tools.helper import safe_item_name
 # final_agent.py
 # ---------- AGENTIC final agent to polish + send itinerary ----------
 # Usage:

@@ -1,7 +1,7 @@
 import os, json, datetime
 import boto3
 
-from tools.config import S3_BUCKET
+from planner_agent.tools.config import S3_BUCKET
 
 _s3 = boto3.client("s3")
 

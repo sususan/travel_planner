@@ -5,15 +5,14 @@
 
 from typing import Dict, Any, Tuple, Optional
 import copy
-from planner_agent.agent.transport import attach_transport_options
-from planner_agent.tools.helper import impute_price
 import json
 import time
 from typing import Dict, Any, Optional
 from crewai import Agent, Task
 import os
 
-from planner_agent.tools.model_helper import _parse_crew_output
+from planner_agent.agent.transport import attach_transport_options
+from planner_agent.tools.helper import impute_price
 
 # Try to import the Crew class from your CrewAI SDK; adjust the import as your SDK requires.
 try:
@@ -23,6 +22,11 @@ except Exception:
 
 
 LLM_MODEL = os.getenv("CREW_LLM_MODEL", "gpt-4o-mini")
+
+
+def _parse_crew_output(result):
+    pass
+
 
 class CrewAIAdapter:
     """
