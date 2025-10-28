@@ -1,18 +1,23 @@
 # Dockerfile
-# Use AWS Lambda Python 3.13 base image (public ECR)
 FROM public.ecr.aws/lambda/python:3.13
+
+# Set writable data dirs used by crewai (Lambda /var/task is read-only; /tmp is writable)
+ENV CREWAI_DATA_DIR=/tmp/crewai_data
+ENV XDG_DATA_HOME=/tmp
 
 # Copy application code
 COPY planner_agent/ ${LAMBDA_TASK_ROOT}/planner_agent/
 COPY requirements.txt ${LAMBDA_TASK_ROOT}/
+
+# Create the data directory in the image (it will also exist at runtime in /tmp)
+RUN mkdir -p /tmp/crewai_data \
+    && chmod 777 /tmp/crewai_data
 
 # Install dependencies into the Lambda task root so they are available at runtime
 RUN python -m pip install --upgrade pip \
     && if [ -s "${LAMBDA_TASK_ROOT}/requirements.txt" ]; then pip install -r ${LAMBDA_TASK_ROOT}/requirements.txt -t ${LAMBDA_TASK_ROOT}; fi \
     && rm -f ${LAMBDA_TASK_ROOT}/requirements.txt
 
-# (Optional) Expose port for local testing with RIC (not required in AWS)
-# EXPOSE 8080
-
 # Command: module.function — Lambda runtime looks for this
+# keep as you had it if that's your handler path
 CMD ["planner_agent.lambda.handler.lambda_handler"]
