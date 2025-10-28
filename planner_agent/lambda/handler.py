@@ -19,6 +19,7 @@ def s3_event_handler(event, context):
     Handle S3 event triggers.
     """
     try:
+        logger.info("!! s3_event_handler !!")
         logger.info(f"Received S3 event: {json.dumps(event)}")
 
         # Validate and extract bucket name and object key

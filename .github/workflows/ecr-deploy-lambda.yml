@@ -118,31 +118,123 @@ jobs:
         # export the target name for next steps (optional)
         echo "DEPLOYED_FUNCTION=${TARGET_NAME}" >> $GITHUB_ENV
 
-    - name: Publish new version & update/create prod alias
+    - name: Wait for update to finish AND verify ImageUri (then publish)
       env:
         AWS_REGION: ${{ env.AWS_REGION }}
-        LAMBDA_NAME: ${{ env.LAMBDA_NAME }}
+        # Use DEPLOYED_FUNCTION if earlier steps set it; else fallback to LAMBDA_NAME
+        LAMBDA_NAME: ${{ env.DEPLOYED_FUNCTION || env.LAMBDA_NAME }}
+        IMAGE_URI: ${{ env.FULL_TAG }}   # the image your workflow pushed (e.g. <acct>.dkr.ecr.<region>.amazonaws.com/repo:tag)
+        TIMEOUT_SECS: 360
+        POLL_INTERVAL: 5
+        MAX_PUBLISH_RETRIES: 6
       run: |
         set -euo pipefail
 
-        # Use the function that was just created/updated
-        TARGET_NAME=${DEPLOYED_FUNCTION:-${LAMBDA_NAME}}
+        echo "Ensuring Lambda '${LAMBDA_NAME}' is updated to image '${IMAGE_URI}' (timeout ${TIMEOUT_SECS}s)..."
+        elapsed=0
+        # Wait for state Active & LastUpdateStatus Successful
+        while true; do
+          read -r state last_status last_reason <<<$(aws lambda get-function-configuration \
+            --function-name "${LAMBDA_NAME}" --region "${AWS_REGION}" \
+            --query '[State, LastUpdateStatus, LastUpdateStatusReason]' --output text 2>/dev/null || echo "NOT_FOUND NOT_FOUND NOT_FOUND")
 
-        echo "Publishing version for function: $TARGET_NAME"
-        VERSION=$(aws lambda publish-version --function-name "$TARGET_NAME" --region "$AWS_REGION" --query 'Version' --output text)
-        echo "Published version: $VERSION"
+          echo "Poll status: State=${state} LastUpdateStatus=${last_status}"
+          if [ "${state}" = "Active" ] && [ "${last_status}" = "Successful" ]; then
+            echo "Lambda update status indicates success; proceeding to verify code."
+            break
+          fi
 
-        # export version for later steps
-        echo "NEW_LAMBDA_VERSION=$VERSION" >> $GITHUB_ENV
+          if [ "${last_status}" = "Failed" ] || [ "${state}" = "Failed" ]; then
+            echo "Lambda update failed: ${last_reason}" >&2
+            aws lambda get-function-configuration --function-name "${LAMBDA_NAME}" --region "${AWS_REGION}" --output json || true
+            exit 1
+          fi
 
-        # create or update alias 'prod'
-        if aws lambda get-alias --function-name "$TARGET_NAME" --name prod --region "$AWS_REGION" >/dev/null 2>&1; then
-          aws lambda update-alias --function-name "$TARGET_NAME" --name prod --function-version "$VERSION" --region "$AWS_REGION"
-          echo "Updated alias prod -> $VERSION for $TARGET_NAME"
+          if [ "${elapsed}" -ge "${TIMEOUT_SECS}" ]; then
+            echo "Timed out waiting for Lambda update to finish after ${elapsed}s" >&2
+            aws lambda get-function-configuration --function-name "${LAMBDA_NAME}" --region "${AWS_REGION}" --output json || true
+            exit 1
+          fi
+
+          sleep "${POLL_INTERVAL}"
+          elapsed=$((elapsed + POLL_INTERVAL))
+        done
+
+        # For Image-based functions: verify the Code.ImageUri matches IMAGE_URI
+        current_image=$(aws lambda get-function --function-name "${LAMBDA_NAME}" --region "${AWS_REGION}" --query 'Code.ImageUri' --output text 2>/dev/null || echo "NONE")
+        echo "Current ImageUri on function: ${current_image}"
+
+        if [ "${current_image}" != "${IMAGE_URI}" ]; then
+          echo "Function does not yet point to the expected image. Waiting until Code.ImageUri matches..."
+          # Wait until it matches or timeout
+          elapsed=0
+          while [ "${current_image}" != "${IMAGE_URI}" ]; do
+            if [ "${elapsed}" -ge "${TIMEOUT_SECS}" ]; then
+              echo "Timed out waiting for function Code.ImageUri to match expected image. Current: ${current_image}" >&2
+              aws lambda get-function --function-name "${LAMBDA_NAME}" --region "${AWS_REGION}" --output json || true
+              exit 1
+            fi
+            sleep "${POLL_INTERVAL}"
+            elapsed=$((elapsed + POLL_INTERVAL))
+            current_image=$(aws lambda get-function --function-name "${LAMBDA_NAME}" --region "${AWS_REGION}" --query 'Code.ImageUri' --output text 2>/dev/null || echo "NONE")
+            echo "Polled ImageUri: ${current_image}"
+          done
+          echo "ImageUri matched expected image."
         else
-          aws lambda create-alias --function-name "$TARGET_NAME" --name prod --function-version "$VERSION" --region "$AWS_REGION"
-          echo "Created alias prod -> $VERSION for $TARGET_NAME"
+          echo "ImageUri already matches expected image."
         fi
+
+        # Now publish with retry/backoff for transient ResourceConflictException
+        attempt=0
+        publish_succeeded=false
+        while [ $attempt -lt "${MAX_PUBLISH_RETRIES}" ]; do
+          attempt=$((attempt+1))
+          echo "Attempt $attempt to publish version..."
+          set +e
+          out=$(aws lambda publish-version --function-name "${LAMBDA_NAME}" --region "${AWS_REGION}" 2>&1)
+          rc=$?
+          set -e
+          if [ $rc -eq 0 ]; then
+            # parse JSON to get Version (jq or python)
+            if command -v jq >/dev/null 2>&1; then
+              VERSION=$(echo "${out}" | jq -r '.Version')
+            else
+              VERSION=$(echo "${out}" | python -c "import sys,json; print(json.load(sys.stdin)['Version'])")
+            fi
+            echo "Published version: ${VERSION}"
+            echo "NEW_LAMBDA_VERSION=${VERSION}" >> $GITHUB_ENV
+            publish_succeeded=true
+            break
+          else
+            echo "Publish failed (rc=$rc): ${out}"
+            if echo "${out}" | grep -q "ResourceConflictException"; then
+              backoff=$((4 * (2 ** (attempt - 1))))
+              echo "ResourceConflictException — backing off ${backoff}s then retrying..."
+              sleep "${backoff}"
+              continue
+            else
+              echo "Publish failed with non-retryable error; aborting." >&2
+              echo "${out}" >&2
+              exit $rc
+            fi
+          fi
+        done
+
+        if [ "${publish_succeeded}" != "true" ]; then
+          echo "Failed to publish after ${MAX_PUBLISH_RETRIES} retries." >&2
+          aws lambda get-function-configuration --function-name "${LAMBDA_NAME}" --region "${AWS_REGION}" --output json || true
+          exit 1
+        fi
+
+        # Update or create alias 'prod' to the published version
+        if aws lambda get-alias --function-name "${LAMBDA_NAME}" --name prod --region "${AWS_REGION}" >/dev/null 2>&1; then
+          aws lambda update-alias --function-name "${LAMBDA_NAME}" --name prod --function-version "${VERSION}" --region "${AWS_REGION}"
+          echo "Updated alias prod -> ${VERSION}"
+        else
+          aws lambda create-alias --function-name "${LAMBDA_NAME}" --name prod --function-version "${VERSION}" --region "${AWS_REGION}"
+          echo "Created alias prod -> ${VERSION}"
+        fi
+    
 
     - name: Sleep briefly to allow new image to be available (tiny buffer)
       run: sleep 3
