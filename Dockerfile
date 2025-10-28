@@ -15,4 +15,4 @@ RUN python -m pip install --upgrade pip \
 # EXPOSE 8080
 
 # Command: module.function — Lambda runtime looks for this
-CMD ["planner_agent.lambda.handler"]
+CMD ["lambda.handler.s3_event_handler"]
