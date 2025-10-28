@@ -1,0 +1,4 @@
+boto3
+openai>=1.30.0
+pydantic==2.11.7
+crewai==0.175.0

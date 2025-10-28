@@ -1,0 +1,76 @@
+# template.yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Planner Agent Serverless API
+
+
+Parameters:
+  BucketName:
+    Type: String
+    Default: planner-agent-artifacts
+  StageName:
+    Type: String
+    Default: dev
+
+
+Globals:
+  Function:
+    Runtime: python3.11
+    Timeout: 30
+    MemorySize: 1024
+    Tracing: Active
+  Environment:
+    Variables:
+    S3_BUCKET: !Ref BucketName
+    STAGE: !Ref StageName
+    CW_NAMESPACE: PlannerAgent
+    CREW_LLM_MODEL: gpt-4o-mini
+  Layers: []
+
+
+Resources:
+  PlannerBucket:
+    Type: AWS::S3::Bucket
+  Properties:
+    BucketName: !Ref BucketName
+    VersioningConfiguration:
+      Status: Enabled
+
+
+  PlannerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+        FunctionName: !Sub planner-agent
+        Handler: lambda/handler.handler
+        CodeUri: ./
+        Policies:
+          - S3CrudPolicy:
+              BucketName: !Ref BucketName
+          - Statement:
+              Effect: Allow
+              Action:
+                - cloudwatch:PutMetricData
+              Resource: '*'
+          - AWSLambdaBasicExecutionRole
+        Events:
+          ApiEvent:
+            Type: Api
+          Properties:
+            Path: /planner/plan
+            Method: POST
+            RestApiId: !Ref PlannerApi
+
+
+  PlannerApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub planner-api
+      TracingEnabled: true
+
+
+Outputs:
+  ApiUrl:
+    Value: !Sub https://${PlannerApi}.execute-api.${AWS::Region}.amazonaws.com/planner/plan
+    Description: Invoke URL
+  BucketNameOut:
+    Value: !Ref BucketName
