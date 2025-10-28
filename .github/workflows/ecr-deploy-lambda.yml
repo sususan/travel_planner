@@ -241,7 +241,7 @@ jobs:
 
     - name: Smoke test - invoke Lambda
       run: |
-        aws lambda invoke --function-name "${LAMBDA_NAME}:prod" --payload '{"name":"CI"}' response.json --region "${{env.AWS_REGION}}"
+        aws lambda invoke --function-name "${LAMBDA_NAME}" --payload '{"name":"CI"}' response.json --region "${{env.AWS_REGION}}"
         cat response.json
         # Simple assertion, fail workflow if we don't see Hello
         grep -q "Hello" response.json
