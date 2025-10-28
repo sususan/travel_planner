@@ -40,17 +40,17 @@ jobs:
 
     - name: Ensure ECR repository exists
       run: |
-        repo="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}"
-        if ! aws ecr describe-repositories --repository-names "${ECR_REPOSITORY}" --region "${AWS_REGION}" >/dev/null 2>&1; then
-          echo "Creating ECR repository ${ECR_REPOSITORY}"
-          aws ecr create-repository --repository-name "${ECR_REPOSITORY}" --region "${AWS_REGION}" >/dev/null
+        repo="${{env.AWS_ACCOUNT_ID}}.dkr.ecr.${{env.AWS_REGION}}.amazonaws.com/${{env.ECR_REPOSITORY}}"
+        if ! aws ecr describe-repositories --repository-names "${{env.ECR_REPOSITORY}}" --region "${{env.AWS_REGION}}" >/dev/null 2>&1; then
+          echo "Creating ECR repository ${{env.ECR_REPOSITORY}}"
+          aws ecr create-repository --repository-name "${{env.ECR_REPOSITORY}}" --region "${{env.AWS_REGION}}" >/dev/null
         else
-          echo "ECR repository ${ECR_REPOSITORY} already exists"
+          echo "ECR repository ${{env.ECR_REPOSITORY}} already exists"
         fi
 
     - name: Build Docker image
       run: |
-        IMAGE_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}"
+        IMAGE_URI="${{env.AWS_ACCOUNT_ID}}.dkr.ecr.${{env.AWS_REGION}}.amazonaws.com/${{env.ECR_REPOSITORY}}"
         IMAGE_TAG="${GITHUB_SHA::8}-$(date +%s)"
         FULL_TAG="${IMAGE_URI}:${IMAGE_TAG}"
         echo "IMAGE_URI=${IMAGE_URI}" >> $GITHUB_ENV
@@ -69,23 +69,23 @@ jobs:
         aws lambda update-function-code \
           --function-name "${LAMBDA_NAME}" \
           --image-uri "${IMAGE_URI}" \
-          --region "${AWS_REGION}"
+          --region "${{env.AWS_REGION}}"
 
     - name: Publish new version
       id: publish
       run: |
-        VERSION=$(aws lambda publish-version --function-name "${LAMBDA_NAME}" --region "${AWS_REGION}" --query 'Version' --output text)
+        VERSION=$(aws lambda publish-version --function-name "${LAMBDA_NAME}" --region "${{env.AWS_REGION}}" --query 'Version' --output text)
         echo "NEW_LAMBDA_VERSION=${VERSION}" >> $GITHUB_ENV
         echo "Published version: ${VERSION}"
 
     - name: Update or create prod alias
       run: |
         VERSION="${{ env.NEW_LAMBDA_VERSION }}"
-        if aws lambda get-alias --function-name "${LAMBDA_NAME}" --name prod --region "${AWS_REGION}" >/dev/null 2>&1; then
-          aws lambda update-alias --function-name "${LAMBDA_NAME}" --name prod --function-version "${VERSION}" --region "${AWS_REGION}"
+        if aws lambda get-alias --function-name "${LAMBDA_NAME}" --name prod --region "${{env.AWS_REGION}}" >/dev/null 2>&1; then
+          aws lambda update-alias --function-name "${LAMBDA_NAME}" --name prod --function-version "${VERSION}" --region "${{env.AWS_REGION}}"
           echo "Updated alias prod -> ${VERSION}"
         else
-          aws lambda create-alias --function-name "${LAMBDA_NAME}" --name prod --function-version "${VERSION}" --region "${AWS_REGION}"
+          aws lambda create-alias --function-name "${LAMBDA_NAME}" --name prod --function-version "${VERSION}" --region "${{env.AWS_REGION}}"
           echo "Created alias prod -> ${VERSION}"
         fi
 
@@ -94,7 +94,7 @@ jobs:
 
     - name: Smoke test - invoke Lambda
       run: |
-        aws lambda invoke --function-name "${LAMBDA_NAME}:prod" --payload '{"name":"CI"}' response.json --region "${AWS_REGION}"
+        aws lambda invoke --function-name "${LAMBDA_NAME}:prod" --payload '{"name":"CI"}' response.json --region "${{env.AWS_REGION}}"
         cat response.json
         # Simple assertion, fail workflow if we don't see Hello
         grep -q "Hello" response.json
