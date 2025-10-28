@@ -4,11 +4,9 @@
 
 import time
 from typing import Dict, Any
-
-from planner_agent.agent.final_agent import FinalAgent
-from planner_agent.agent.planner_agent import PlannerAgent
 from planner_agent.agent.transport import TransportAdapter, attach_transport_options
-from planner_agent.planner_core.core import score_candidates, shortlist, assign_to_days, explain, _safe_get  # your core heuristics
+from planner_agent.planner_core.core import score_candidates, shortlist, assign_to_days, explain, _safe_get, \
+    _pace_minutes, _minutes_for_item, _lunch_minutes  # your core heuristics
 from planner_agent.tools.config import MAX_AGENT_ITERATIONS
 from planner_agent.tools.helper import aggregate_budget_range
 from planner_agent.agent.planner_agent import PlannerAgent, CrewAIAdapter as PlannerCrewAdapter
@@ -58,7 +56,6 @@ def validate_itinerary(itinerary: Dict[str, Any], metrics: Dict[str, Any], paylo
         gates["coverage_ok"] = bool(metrics.get("interest_terms_covered"))
 
     # pace/time: ensure each day activity_time + travel_time <= pace_limit
-    from planner_core.core import _pace_minutes, _minutes_for_item, _lunch_minutes  # use your core functions
     pace_minutes = _pace_minutes(req.get("pace"))
     for date, plan in itinerary.items():
         activity_minutes = 0

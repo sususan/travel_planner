@@ -6,9 +6,7 @@ import re
 from difflib import get_close_matches
 from typing import Dict, Any, Tuple, List, Iterable
 from math import radians, cos, sin, asin, sqrt
-
-from planner_agent.tools.config import senior_multiplier
-
+from planner_agent.tools.config import  senior_multiplier, child_multiplier
 
 # reuse your haversine from core if available; reimplement minimal here to avoid circular imports
 def _haversine_km(lat1, lon1, lat2, lon2) -> float:
