@@ -226,7 +226,7 @@ jobs:
           exit 1
         fi
 
-         # Update or create alias 'prod' to the published version
+        # Update or create alias 'prod' to the published version
         if aws lambda get-alias --function-name "${LAMBDA_NAME}" --name prod --region "${AWS_REGION}" >/dev/null 2>&1; then
           aws lambda update-alias --function-name "${LAMBDA_NAME}" --name prod --function-version "${VERSION}" --region "${AWS_REGION}"
           echo "Updated alias prod -> ${VERSION}"
@@ -262,7 +262,7 @@ jobs:
         test -f planner_agent/template.yaml || (echo "Failed to copy template from image" && exit 1)
         echo "Template copied to planner_agent/template.yaml"
 
-        # install sam cli (if not already)
+        # install sam cli
         python -m pip install --upgrade pip
         pip install aws-sam-cli --quiet
 

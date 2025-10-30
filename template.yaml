@@ -22,7 +22,6 @@ Globals:
         STAGE: !Ref StageName
         CW_NAMESPACE: PlannerAgent
         CREW_LLM_MODEL: gpt-4o-mini
-  Layers: []
 
 Resources:
   PlannerBucket:
