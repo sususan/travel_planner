@@ -234,27 +234,42 @@ jobs:
           aws lambda create-alias --function-name "${LAMBDA_NAME}" --name prod --function-version "${VERSION}" --region "${AWS_REGION}"
           echo "Created alias prod -> ${VERSION}"
         fi
-    
-    - name: Deploy API Gateway (SAM)
+
+    - name: Extract SAM template from image and deploy
       env:
+        IMAGE_URI: ${{ env.FULL_TAG }}           # or use the image variable you already set
         AWS_REGION: ${{ env.AWS_REGION }}
         AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}
         LAMBDA_NAME: ${{ env.LAMBDA_NAME }}
       run: |
         set -euo pipefail
-        echo "=== Building & Deploying SAM template for API Gateway ==="
+        echo "=== Extract template from image and deploy via SAM on runner ==="
 
-        # Ensure SAM CLI is available
+        IMAGE="${IMAGE_URI}"
+        echo "Using image: $IMAGE"
+
+        # create a transient container (doesn't start processes)
+        CID=$(docker create "$IMAGE")
+        echo "Created container id: $CID"
+
+        # copy the template from inside the image to the repo workspace (adjust path inside image if needed)
+        docker cp "${CID}:/var/app/planner_agent/template.yaml" planner_agent/template.yaml
+
+        # remove transient container
+        docker rm "$CID"
+
+        # ensure the template was copied
+        test -f planner_agent/template.yaml || (echo "Failed to copy template from image" && exit 1)
+        echo "Template copied to planner_agent/template.yaml"
+
+        # install sam cli (if not already)
         python -m pip install --upgrade pip
         pip install aws-sam-cli --quiet
 
-        # Validate template
-        sam validate --template-file /var/app/planner_agent/template.yaml
+        # validate, build, deploy (these run on the runner and use OIDC creds already configured)
+        sam validate --template-file planner_agent/template.yaml
+        sam build --template-file planner_agent/template.yaml --build-dir .aws-sam/build
 
-        # Build SAM application (expand Transform)
-        sam build --template-file /var/app/planner_agent/template.yaml --build-dir .aws-sam/build
-
-        # Deploy the built CloudFormation stack
         LAMBDA_ARN="arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_NAME}"
         sam deploy \
           --template-file .aws-sam/build/template.yaml \
@@ -263,8 +278,8 @@ jobs:
           --parameter-overrides LambdaFunctionArn=${LAMBDA_ARN} ApiName=planner-agent \
           --no-fail-on-empty-changeset
 
-        echo "=== SAM Deploy completed successfully ==="
-
+        echo "=== SAM deploy completed successfully ==="
+    
 
     - name: Sleep briefly to allow new image to be available (tiny buffer)
       run: sleep 3
