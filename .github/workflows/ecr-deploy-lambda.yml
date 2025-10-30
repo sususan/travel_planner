@@ -68,7 +68,7 @@ jobs:
       run: |
         echo "Deploying API Gateway stack..."
         aws cloudformation deploy \
-          --template-file /app/template.yml \
+          --template-file /var/task/planner_agent/template.yml \
           --stack-name planner-agent-stack \
           --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
           --parameter-overrides LambdaFunctionArn=${LAMBDA_ARN} ApiName=planner-agent
