@@ -62,7 +62,18 @@ jobs:
       run: |
         docker push "${{ env.FULL_TAG }}"
 
-      # --- Update / Publish / Alias (robust handling for Zip vs Image functions) ---
+    - name: Deploy/Update API Gateway (CloudFormation)
+      env:
+        LAMBDA_ARN: arn:aws:lambda:${{ env.AWS_REGION }}:${{ steps.account.outputs.account_id }}:function:${{ env.LAMBDA_FUNCTION_NAME }}
+      run: |
+        echo "Deploying API Gateway stack..."
+        aws cloudformation deploy \
+          --template-file template.yml \
+          --stack-name planner-agent-stack \
+          --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+          --parameter-overrides LambdaFunctionArn=${LAMBDA_ARN} ApiName=planner-agent
+
+      # --- Update / Publish / Alias (robust handling forImage functions) ---
     - name: Update/Create Lambda (image-aware)
       env:
         AWS_REGION: ${{ env.AWS_REGION }}

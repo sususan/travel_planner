@@ -1,8 +1,6 @@
-# template.yaml
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Planner Agent Serverless API
-
 
 Parameters:
   BucketName:
@@ -12,65 +10,61 @@ Parameters:
     Type: String
     Default: dev
 
-
 Globals:
   Function:
     Runtime: python3.11
     Timeout: 30
     MemorySize: 1024
     Tracing: Active
-  Environment:
-    Variables:
-    S3_BUCKET: !Ref BucketName
-    STAGE: !Ref StageName
-    CW_NAMESPACE: PlannerAgent
-    CREW_LLM_MODEL: gpt-4o-mini
+    Environment:
+      Variables:
+        S3_BUCKET: !Ref BucketName
+        STAGE: !Ref StageName
+        CW_NAMESPACE: PlannerAgent
+        CREW_LLM_MODEL: gpt-4o-mini
   Layers: []
-
 
 Resources:
   PlannerBucket:
     Type: AWS::S3::Bucket
-  Properties:
-    BucketName: !Ref BucketName
-    VersioningConfiguration:
-      Status: Enabled
-
-
-  PlannerFunction:
-    Type: AWS::Serverless::Function
     Properties:
-        FunctionName: !Sub planner-agent
-        Handler: lambda/handler.handler
-        CodeUri: ./
-        Policies:
-          - S3CrudPolicy:
-              BucketName: !Ref BucketName
-          - Statement:
-              Effect: Allow
-              Action:
-                - cloudwatch:PutMetricData
-              Resource: '*'
-          - AWSLambdaBasicExecutionRole
-        Events:
-          ApiEvent:
-            Type: Api
-          Properties:
-            Path: /planner/plan
-            Method: POST
-            RestApiId: !Ref PlannerApi
-
+      BucketName: !Ref BucketName
+      VersioningConfiguration:
+        Status: Enabled
 
   PlannerApi:
     Type: AWS::Serverless::Api
     Properties:
-      Name: !Sub planner-api
+      Name: !Sub planner-agent
+      StageName: !Ref StageName
       TracingEnabled: true
 
+  PlannerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub planner-agent
+      Handler: handler.lambda_handler
+      CodeUri: ./
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref BucketName
+        - Statement:
+            Effect: Allow
+            Action:
+              - cloudwatch:PutMetricData
+            Resource: '*'
+        - AWSLambdaBasicExecutionRole
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /planner/plan
+            Method: post
+            RestApiId: !Ref PlannerApi
 
 Outputs:
   ApiUrl:
-    Value: !Sub https://${PlannerApi}.execute-api.${AWS::Region}.amazonaws.com/planner/plan
-    Description: Invoke URL
+    Description: Invoke URL for the API
+    Value: !Sub "https://${PlannerApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/planner/plan"
   BucketNameOut:
     Value: !Ref BucketName
