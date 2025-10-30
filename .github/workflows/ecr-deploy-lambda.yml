@@ -267,7 +267,7 @@ jobs:
 
         # validate, build, deploy (these run on the runner and use OIDC creds already configured)
         #sam validate --template-file planner_agent/template.yaml
-        sam build --template-file planner_agent/template.yaml --build-dir .aws-sam/build/planner_agent
+        sam build --template-file planner_agent/template.yaml --build-dir .aws-sam/build/
 
         LAMBDA_ARN="arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_NAME}"
         sam deploy \
