@@ -1,5 +1,5 @@
 # Dockerfile
-FROM public.ecr.aws/lambda/python:3.13
+FROM public.ecr.aws/lambda/python:3.12
 
 # Set writable data dirs used by crewai (Lambda /var/task is read-only; /tmp is writable)
 ENV CREWAI_DATA_DIR=/tmp/crewai_data

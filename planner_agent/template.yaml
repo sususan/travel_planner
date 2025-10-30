@@ -12,7 +12,7 @@ Parameters:
 
 Globals:
   Function:
-    Runtime: python3.13
+    Runtime: python3.12
     Timeout: 180
     MemorySize: 1024
     Tracing: Active
