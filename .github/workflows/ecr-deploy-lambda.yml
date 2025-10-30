@@ -271,7 +271,7 @@ jobs:
 
         LAMBDA_ARN="arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_NAME}"
         sam deploy \
-          --template-file .aws-sam/build/template.yaml \
+          --template-file ..aws-sam/build/planner_agent/template.yaml \
           --stack-name planner-agent-stack \
           --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
           --parameter-overrides LambdaFunctionArn=${LAMBDA_ARN} ApiName=planner-agent \
