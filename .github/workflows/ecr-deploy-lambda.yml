@@ -195,12 +195,24 @@ jobs:
           exit 1
         fi
 
-        # Update or create alias 'prod' to the published version
+        # --- Update or create alias 'prod' to the published version ---
+        echo "Updating or creating alias 'prod' for version ${VERSION}..."
+        
         if aws lambda get-alias --function-name "${LAMBDA_NAME}" --name prod --region "${AWS_REGION}" >/dev/null 2>&1; then
-          aws lambda update-alias --function-name "${LAMBDA_NAME}" --name prod --function-version "${VERSION}" --region "${AWS_REGION}"
+          echo "Alias 'prod' exists — updating..."
+          aws lambda update-alias \
+            --function-name "${LAMBDA_NAME}" \
+            --name prod \
+            --function-version "${VERSION}" \
+            --region "${AWS_REGION}"
           echo "Updated alias prod -> ${VERSION}"
         else
-          aws lambda create-alias --function-name "${LAMBDA_NAME}" --name prod --function-version "${VERSION}" --region "${AWS_REGION}"
+          echo "Alias 'prod' does not exist — creating..."
+          aws lambda create-alias \
+            --function-name "${LAMBDA_NAME}" \
+            --name prod \
+            --function-version "${VERSION}" \
+            --region "${AWS_REGION}"
           echo "Created alias prod -> ${VERSION}"
         fi
 
@@ -236,7 +248,7 @@ jobs:
         pip install aws-sam-cli --quiet
 
         # validate, build, deploy (these run on the runner and use OIDC creds already configured)
-        #sam validate --template-file planner_agent/template.yaml
+        sam validate --template-file planner_agent/template.yaml
         sam build --template-file planner_agent/template.yaml --build-dir .aws-sam/build
 
         LAMBDA_ARN="arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_NAME}"

@@ -13,7 +13,7 @@ Parameters:
 Globals:
   Function:
     Runtime: python3.13
-    Timeout: 30
+    Timeout: 180
     MemorySize: 1024
     Tracing: Active
     Environment:
@@ -43,7 +43,7 @@ Resources:
     Properties:
       FunctionName: !Sub planner-agent
       Handler: handler.lambda_handler
-      CodeUri: ./
+      CodeUri: ./planner_agent
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref BucketName
