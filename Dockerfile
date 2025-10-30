@@ -7,7 +7,7 @@ ENV XDG_DATA_HOME=/tmp
 
 # Copy application code
 COPY requirements.txt ${LAMBDA_TASK_ROOT}/
-#COPY template.yaml /var/app/planner_agent/
+COPY template.yaml /var/app/planner_agent/
 COPY planner_agent/ ${LAMBDA_TASK_ROOT}/planner_agent/
 
 # Create the data directory in the image (it will also exist at runtime in /tmp)
