@@ -226,7 +226,7 @@ jobs:
           exit 1
         fi
 
-        # Update or create alias 'prod' to the published version
+         # Update or create alias 'prod' to the published version
         if aws lambda get-alias --function-name "${LAMBDA_NAME}" --name prod --region "${AWS_REGION}" >/dev/null 2>&1; then
           aws lambda update-alias --function-name "${LAMBDA_NAME}" --name prod --function-version "${VERSION}" --region "${AWS_REGION}"
           echo "Updated alias prod -> ${VERSION}"
@@ -249,10 +249,10 @@ jobs:
         pip install aws-sam-cli --quiet
 
         # Validate template
-        sam validate --template-file planner_agent/template.yaml
+        sam validate --template-file /var/app/planner_agent/template.yaml
 
         # Build SAM application (expand Transform)
-        sam build --template-file planner_agent/template.yaml --build-dir .aws-sam/build
+        sam build --template-file /var/app/planner_agent/template.yaml --build-dir .aws-sam/build
 
         # Deploy the built CloudFormation stack
         LAMBDA_ARN="arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_NAME}"

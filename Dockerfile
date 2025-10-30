@@ -4,11 +4,14 @@ FROM public.ecr.aws/lambda/python:3.13
 # Set writable data dirs used by crewai (Lambda /var/task is read-only; /tmp is writable)
 ENV CREWAI_DATA_DIR=/tmp/crewai_data
 ENV XDG_DATA_HOME=/tmp
+ENV LAMBDA_TASK_ROOT=/var/app
 
 # Copy application code
 COPY planner_agent/ ${LAMBDA_TASK_ROOT}/planner_agent/
 COPY requirements.txt ${LAMBDA_TASK_ROOT}/
 COPY template.yaml ${LAMBDA_TASK_ROOT}/planner_agent/
+
+WORKDIR ${LAMBDA_TASK_ROOT}
 
 # Create the data directory in the image (it will also exist at runtime in /tmp)
 RUN mkdir -p /tmp/crewai_data \
