@@ -33,6 +33,38 @@ jobs:
       with:
         role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
         aws-region: ${{ env.AWS_REGION }}
+    - name: Install SAM CLI
+      run: pip install aws-sam-cli
+
+    - name: Build SAM template
+      run: sam build --template-file planner_agent/template.yaml --build-dir .aws-sam/build
+
+    - name: Build Docker image (includes built template)
+      run: |
+        IMAGE_URI=${{ steps.account.outputs.account_id }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+        # Ensure Dockerfile copies .aws-sam/build/template.yaml into /var/task/planner_agent/template.yaml
+        docker build -t $IMAGE_URI .
+
+    - name: Push image to ECR
+      run: docker push $IMAGE_URI
+
+    - name: Deploy CloudFormation inside container
+      env:
+        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}     # configure-aws-credentials populates these
+        AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+        AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+      run: |
+        IMAGE_URI=${{ steps.account.outputs.account_id }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+        docker run --rm \
+          -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+          -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+          -e AWS_SESSION_TOKEN="${{ secrets.AWS_SESSION_TOKEN }}" \
+          $IMAGE_URI \
+          bash -lc "aws cloudformation deploy \
+            --template-file /var/task/planner_agent/template.yaml \
+            --stack-name planner-agent-stack \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+            --parameter-overrides LambdaFunctionArn=${LAMBDA_ARN} ApiName=planner-agent"
 
     - name: Log in to Amazon ECR
       id: login-ecr
@@ -61,19 +93,6 @@ jobs:
     - name: Push image to ECR
       run: |
         docker push "${{ env.FULL_TAG }}"
-
-      # after configure-aws-credentials (so env AWS_ACCESS_KEY_ID etc exist)
-    - name: Run cloudformation deploy inside built image
-      run: |
-        IMAGE=${{ steps.account.outputs.account_id }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
-
-        docker run --rm \
-          -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
-          -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-          -e AWS_SESSION_TOKEN="${{ secrets.AWS_SESSION_TOKEN }}" \
-          $IMAGE \
-          bash -lc "aws cloudformation deploy --template-file /var/task/planner_agent/template.yaml --stack-name planner-agent-stack --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --parameter-overrides LambdaFunctionArn=${LAMBDA_ARN} ApiName=planner-agent"
-      
 
       # --- Update / Publish / Alias (robust handling forImage functions) ---
     - name: Update/Create Lambda (image-aware)
