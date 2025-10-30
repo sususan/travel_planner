@@ -23,7 +23,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Set up QEMU (optional for multi-arch builds)
+    - name: Set up QEMU
       run: |
         # For standard x86_64 builds this is not required. Keep if building different architectures.
         true
@@ -37,7 +37,7 @@ jobs:
       run: pip install aws-sam-cli
 
     - name: Build SAM template
-      run: sam build --template-file planner_agent/template.yaml --build-dir .aws-sam/build
+      run: sam build --template-file /var/task/planner_agent/template.yaml --build-dir .aws-sam/build
 
     - name: Build Docker image (includes built template)
       run: |
