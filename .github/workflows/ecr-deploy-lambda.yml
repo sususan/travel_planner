@@ -276,10 +276,12 @@ jobs:
           --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
           --parameter-overrides \
             LambdaFunctionArn=${LAMBDA_ARN} \
+            LambdaExecutionRoleArn=arn:aws:iam::${AWS_ACCOUNT_ID}:role/planner-agent-LambdaRole \
             ApiName=planner-agent \
             BucketName=iss-travel-planner \
             StageName=prod \
-          --no-fail-on-empty-changeset
+          --no-fail-on-empty-changeset \
+          --s3-bucket planner-agent-sam-artifacts \
 
         echo "=== SAM deploy completed successfully ==="
     
