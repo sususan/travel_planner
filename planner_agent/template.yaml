@@ -3,6 +3,9 @@ Transform: AWS::Serverless-2016-10-31
 Description: Planner Agent Serverless API
 
 Parameters:
+  ApiName:
+    Type: String
+    Default: planner-agent
   BucketName:
     Type: String
     Default: planner-agent-artifacts
@@ -30,7 +33,7 @@ Resources:
   PlannerApi:
     Type: AWS::Serverless::Api
     Properties:
-      Name: !Sub planner-agent
+      Name: !Ref ApiName
       StageName: !Ref StageName
       TracingEnabled: true
 
@@ -38,7 +41,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       # unique function name
-      FunctionName: !Sub "${ApiName}-planner"
+      FunctionName: planner-agent
       Handler: planner_handler.lambda_handler
       CodeUri: ./        # point to the folder containing your code
       Runtime: python3.12
@@ -64,7 +67,7 @@ Resources:
   FinalFormatterFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "${ApiName}-final-formatter"
+      FunctionName: !Sub final-formatter-agent
       Handler: final_formatter_handler.handler
       CodeUri: ./        # same CodeUri if the handler file is in planner_agent/
       Runtime: python3.12
