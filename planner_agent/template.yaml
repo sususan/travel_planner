@@ -43,7 +43,7 @@ Resources:
     Properties:
       FunctionName: !Sub planner-agent
       Handler: handler.lambda_handler
-      CodeUri: planner_agent
+      CodeUri: ./
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref BucketName
