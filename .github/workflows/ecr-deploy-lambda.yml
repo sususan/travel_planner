@@ -94,6 +94,18 @@ jobs:
           set -euo pipefail
           sam build --template-file planner_agent/template.yaml --build-dir .aws-sam/build/planner_agent
 
+      - name: Remove broken SAM-managed stack (if present)
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
+        run: |
+          set -euo pipefail
+          echo "Deleting any existing aws-sam-cli-managed-default (if present)..."
+          aws cloudformation describe-stacks --stack-name aws-sam-cli-managed-default --region "${AWS_REGION}" >/dev/null 2>&1 && {
+            aws cloudformation delete-stack --stack-name aws-sam-cli-managed-default --region "${AWS_REGION}"
+            aws cloudformation wait stack-delete-complete --stack-name aws-sam-cli-managed-default --region "${AWS_REGION}"
+            echo "Deleted aws-sam-cli-managed-default"
+          } || echo "No aws-sam-cli-managed-default stack found; continuing"
+
       - name: SAM deploy (non-interactive, resolve-s3)
         env:
           AWS_REGION: ${{ env.AWS_REGION }}
@@ -114,7 +126,9 @@ jobs:
               ApiName=${API_NAME} \
               BucketName=${BUCKET_NAME} \
               StageName=${STAGE_NAME} \
+              LambdaFunctionArn=${LAMBDA_ARN} \
               LambdaExecutionRoleArn=arn:aws:iam::${AWS_ACCOUNT_ID}:role/planner-agent-LambdaRole \
+            --s3-bucket planner-agent-sam-artifacts-${AWS_ACCOUNT_ID}-${AWS_REGION} \
             --no-fail-on-empty-changeset
 
       - name: Wait for stack to stabilize (brief)
