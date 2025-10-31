@@ -279,6 +279,7 @@ jobs:
             BucketName=planner-agent-sam-artifacts \
             StageName=prod \
           --no-fail-on-empty-changeset
+          --resolve-s3
         
 
         echo "=== SAM deploy completed successfully ==="
