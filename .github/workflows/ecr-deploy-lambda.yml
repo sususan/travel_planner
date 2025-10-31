@@ -273,14 +273,15 @@ jobs:
         sam deploy \
           --template-file .aws-sam/build/planner_agent/template.yaml \
           --stack-name planner-agent-stack \
-          --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \         
+          --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
           --parameter-overrides \
-            LambdaFunctionArn=${LAMBDA_ARN} ApiName=planner-agent \         
-            BucketName=planner-agent-sam-artifacts \
+            LambdaFunctionArn=${LAMBDA_ARN} \
+            ApiName=planner-agent \
+            BucketName=my-travelplanner-bucket-${AWS_ACCOUNT_ID} \
             StageName=prod \
-          --no-fail-on-empty-changeset
+          --no-fail-on-empty-changeset \
+          --s3-bucket my-sam-artifacts-${AWS_ACCOUNT_ID}-${AWS_REGION} \
           --resolve-s3
-        
 
         echo "=== SAM deploy completed successfully ==="
     
