@@ -37,10 +37,13 @@ Resources:
   PlannerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub planner-agent
+      # unique function name
+      FunctionName: !Sub "${ApiName}-planner"
       Handler: planner_handler.lambda_handler
-      CodeUri: ./
-      Role: !Ref LambdaExecutionRoleArn
+      CodeUri: planner_agent/        # point to the folder containing your code
+      Runtime: python3.12
+      Architectures:
+        - x86_64
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref BucketName
@@ -49,6 +52,7 @@ Resources:
             Action:
               - cloudwatch:PutMetricData
             Resource: '*'
+        - AWSLambdaBasicExecutionRole    # ensures basic logging permissions
       Events:
         ApiEvent:
           Type: Api
@@ -60,10 +64,12 @@ Resources:
   FinalFormatterFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub planner-agent
+      FunctionName: !Sub "${ApiName}-final-formatter"
       Handler: final_formatter_handler.handler
-      CodeUri: ./
-      Role: !Ref LambdaExecutionRoleArn
+      CodeUri: planner_agent/        # same CodeUri if the handler file is in planner_agent/
+      Runtime: python3.12
+      Architectures:
+        - x86_64
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref BucketName
@@ -72,6 +78,7 @@ Resources:
             Action:
               - cloudwatch:PutMetricData
             Resource: '*'
+        - AWSLambdaBasicExecutionRole
       Events:
         ApiEvent:
           Type: Api
