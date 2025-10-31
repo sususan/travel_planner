@@ -9,6 +9,8 @@ Parameters:
   StageName:
     Type: String
     Default: dev
+  LambdaExecutionRoleArn:
+    Type: String
 
 Globals:
   Function:
@@ -18,7 +20,7 @@ Globals:
     Tracing: Active
     Environment:
       Variables:
-        LAMBDA_ROLE: !Ref LambdaExecutionRoleArn
+        LambdaExecutionRoleArn: !Ref LambdaExecutionRoleArn
         S3_BUCKET: !Ref BucketName
         STAGE: !Ref StageName
         CW_NAMESPACE: PlannerAgent
@@ -45,7 +47,7 @@ Resources:
       FunctionName: !Sub planner-agent
       Handler: planner_handler.lambda_handler
       CodeUri: ./
-      Role: !Ref LAMBDA_ROLE
+      Role: !Ref LambdaExecutionRoleArn
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref BucketName
@@ -68,7 +70,7 @@ Resources:
       FunctionName: !Sub planner-agent
       Handler: final_formatter_handler.handler
       CodeUri: ./
-      Role: !Ref LAMBDA_ROLE
+      Role: !Ref LambdaExecutionRoleArn
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref BucketName
