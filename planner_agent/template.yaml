@@ -27,13 +27,6 @@ Globals:
         CREW_LLM_MODEL: gpt-4o-mini
 
 Resources:
-  PlannerBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Ref BucketName
-      VersioningConfiguration:
-        Status: Enabled
-
   PlannerApi:
     Type: AWS::Serverless::Api
     Properties:
