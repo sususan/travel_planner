@@ -1,0 +1,149 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			  "Sid": "CloudFormation",
+			  "Effect": "Allow",
+			   "Action": [
+				"cloudformation:CreateStack",
+				"cloudformation:UpdateStack",
+				"cloudformation:DeleteStack",
+				"cloudformation:DescribeStacks",
+				"cloudformation:DescribeStackEvents",
+				"cloudformation:ListStackResources",
+				"cloudformation:GetTemplate",
+				"cloudformation:GetTemplateSummary",
+				"cloudformation:ValidateTemplate",
+				"cloudformation:CreateChangeSet",
+				"cloudformation:ExecuteChangeSet",
+				"cloudformation:DescribeChangeSet",
+				"cloudformation:DeleteChangeSet",
+				"cloudformation:DescribeStackResource",
+				"cloudformation:DescribeStackResources",
+				"cloudformation:ListStacks"
+			  ],
+			  "Resource": "*"
+		},
+		{
+			"Sid": "S3ForSAMArtifacts",
+			"Effect": "Allow",
+			"Action": [
+				"s3:PutObject",
+				"s3:GetObject",
+				"s3:ListBucket",
+				"s3:PutObjectAcl",
+				"s3:GetBucketLocation"
+			],
+			"Resource": "*"
+		},
+		{
+			"Sid": "ECRPushPermissions",
+			"Effect": "Allow",
+			"Action": [
+				"ecr:GetAuthorizationToken",
+				"ecr:BatchCheckLayerAvailability",
+				"ecr:CompleteLayerUpload",
+				"ecr:InitiateLayerUpload",
+				"ecr:UploadLayerPart",
+				"ecr:PutImage",
+				"ecr:CreateRepository",
+				"ecr:DescribeRepositories"
+			],
+			"Resource": "*"
+		},
+		{
+			"Sid": "LambdaManagement",
+			"Effect": "Allow",
+			"Action": [
+				"lambda:UpdateFunctionCode",
+				"lambda:GetFunctionConfiguration",
+				"lambda:UpdateFunctionConfiguration",
+				"lambda:PublishVersion",
+				"lambda:CreateAlias",
+				"lambda:UpdateAlias",
+				"lambda:GetFunction",
+				 "lambda:CreateFunction",
+				"lambda:AddPermission",
+				"lambda:RemovePermission",
+				"lambda:ListVersionsByFunction",
+				"lambda:TagResource"
+			],
+			"Resource": "arn:aws:lambda:*:641675857341:function:planner-agent"
+		},
+		{
+			"Sid": "PassRoleForLambda",
+			"Effect": "Allow",
+			"Action": [
+				"iam:CreateRole",
+				"iam:DeleteRole",
+				"iam:GetRole",
+				"iam:PassRole",
+				"iam:AttachRolePolicy",
+				"iam:DetachRolePolicy",
+				"iam:PutRolePolicy",
+				"iam:DeleteRolePolicy",
+				"iam:CreatePolicyVersion",
+				"iam:SetDefaultPolicyVersion"
+			],
+			"Resource": "arn:aws:iam::641675857341:role/planner-agent-LambdaRole"
+		},
+		{
+			"Sid": "CloudWatchOptional",
+			"Effect": "Allow",
+			"Action": [
+				"logs:CreateLogGroup",
+				"logs:CreateLogStream",
+				"logs:PutLogEvents",
+				"logs:DescribeLogStreams",
+				"logs:GetLogEvents",
+				"logs:FilterLogEvents"
+			],
+			"Resource": "*"
+		},
+		{
+			"Sid": "STSRead",
+			"Effect": "Allow",
+			"Action": [
+				"sts:GetCallerIdentity"
+			],
+			"Resource": "*"
+		},
+		{
+		  "Sid": "ApiGatewayV1",
+		  "Effect": "Allow",
+		  "Action": [
+			"apigateway:GET",
+			"apigateway:POST",
+			"apigateway:PUT",
+			"apigateway:DELETE",
+			"apigateway:PATCH",
+			"apigateway:HEAD",
+			"apigateway:CreateRestApi",
+			"apigateway:DELETE",
+			"apigateway:GET/restapis",
+			"apigateway:GET/restapis/*",
+			"apigateway:PUT/restapis/*",
+			"apigateway:DELETE/restapis/*",
+			"apigateway:GET/resources",
+			"apigateway:POST/resources",
+			"apigateway:PATCH/resources/*",
+			"apigateway:PUT/resources/*",
+			"apigateway:DELETE/resources/*",
+			"apigateway:GET/stages",
+			"apigateway:POST/stages",
+			"apigateway:PUT/stages/*",
+			"apigateway:DELETE/stages/*",
+			"apigateway:CreateDomainName",
+			"apigateway:DeleteDomainName",
+			"apigateway:GetDomainNames",
+			"apigateway:CreateBasePathMapping",
+			"apigateway:DeleteBasePathMapping",
+			"apigateway:GET/domainnames/*",
+			"apigateway:GET/stages/*",
+			"apigateway:TagResource",
+			"apigateway:UntagResource"
+		  ],
+		  "Resource": "*"
+		}
+	]
+}
