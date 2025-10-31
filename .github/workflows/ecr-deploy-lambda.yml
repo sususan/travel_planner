@@ -115,7 +115,6 @@ jobs:
               BucketName=${BUCKET_NAME} \
               StageName=${STAGE_NAME} \
               LambdaExecutionRoleArn=arn:aws:iam::${AWS_ACCOUNT_ID}:role/planner-agent-LambdaRole \
-            --resolve-s3 \
             --no-fail-on-empty-changeset
 
       - name: Wait for stack to stabilize (brief)
