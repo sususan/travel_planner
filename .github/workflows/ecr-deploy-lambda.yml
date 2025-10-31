@@ -277,10 +277,10 @@ jobs:
           --parameter-overrides \
             LambdaFunctionArn=${LAMBDA_ARN} \
             ApiName=planner-agent \
-            BucketName=planner-agent-sam-artifacts \
+            BucketName=iss-travel-planner \
             StageName=prod \
           --no-fail-on-empty-changeset \
-          --resolve-s3
+          --s3-bucket planner-agent-sam-artifacts \
 
         echo "=== SAM deploy completed successfully ==="
     
