@@ -279,8 +279,7 @@ jobs:
             ApiName=planner-agent \
             BucketName=iss-travel-planner \
             StageName=prod \
-          --no-fail-on-empty-changeset \
-          --s3-bucket planner-agent-sam-artifacts \
+          --no-fail-on-empty-changeset
 
         echo "=== SAM deploy completed successfully ==="
     
