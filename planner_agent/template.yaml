@@ -42,7 +42,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub planner-agent
-      Handler: handler.lambda_handler
+      Handler: planner_handler.lambda_handler
       CodeUri: ./
       Policies:
         - S3CrudPolicy:
@@ -58,6 +58,29 @@ Resources:
           Type: Api
           Properties:
             Path: /planner/plan
+            Method: post
+            RestApiId: !Ref PlannerApi
+
+  FinalFormatterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub planner-agent
+      Handler: final_formatter_handler.handler
+      CodeUri: ./
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref BucketName
+        - Statement:
+            Effect: Allow
+            Action:
+              - cloudwatch:PutMetricData
+            Resource: '*'
+        - AWSLambdaBasicExecutionRole
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /planner/final
             Method: post
             RestApiId: !Ref PlannerApi
 
