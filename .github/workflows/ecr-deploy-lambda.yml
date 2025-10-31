@@ -277,7 +277,7 @@ jobs:
           --parameter-overrides \
             LambdaFunctionArn=${LAMBDA_ARN} \
             ApiName=planner-agent \
-            BucketName=my-travelplanner-bucket-${AWS_ACCOUNT_ID} \
+            BucketName=planner-agent-sam-artifacts \
             StageName=prod \
           --no-fail-on-empty-changeset \
           --resolve-s3
