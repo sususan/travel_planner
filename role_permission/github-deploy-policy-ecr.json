@@ -69,8 +69,8 @@
 				"lambda:TagResource"
 			],
 			"Resource": [
-				"arn:aws:lambda:*:641675857341:function:planner-agent",
-				"arn:aws:lambda:*:641675857341:function:final-formatter-agent"
+				"arn:aws:lambda:*:641675857341:function:planner-agent-*",
+				"arn:aws:lambda:*:641675857341:function:final-formatter-*"
 			]
 		},
 		{
