@@ -6,7 +6,7 @@ from planner_agent.tools.s3io import get_json
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-def handler(event, context):
+def lambda_handler(event, context):
     logger.info("!! lambda_handler !!")
     name = event.get("name", "world")
     return {
