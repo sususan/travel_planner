@@ -47,7 +47,7 @@ Resources:
       PackageType: Image
       ImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/planner_agent:${ImageTag}'
       ImageConfig:
-        Command: ["planner_handler.lambda_handler"]
+        Command: ["planner_agent.lanner_handler.lambda_handler"]
       Role: !Ref LambdaExecutionRoleArn
       Architectures:
         - x86_64
@@ -66,7 +66,7 @@ Resources:
       PackageType: Image                         # <-- explicit for image-based Lambda
       ImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/planner_agent:${ImageTag}'
       ImageConfig:
-        Command: ["final_formatter_handler.handler"]
+        Command: ["planner_agent.final_formatter_handler.handler"]
       Role: !Ref LambdaExecutionRoleArn
       Architectures:
         - x86_64
