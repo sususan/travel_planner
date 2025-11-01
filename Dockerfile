@@ -5,11 +5,15 @@ FROM public.ecr.aws/lambda/python:3.12
 ENV CREWAI_DATA_DIR=/tmp/crewai_data
 ENV XDG_DATA_HOME=/tmp
 
+WORKDIR /var/app
+
 # Copy application code
 COPY requirements.txt ${LAMBDA_TASK_ROOT}/
 COPY planner_agent /var/app/planner_agent
 COPY planner_agent/template.yaml /var/app/planner_agent/
 #COPY planner_agent/ ${LAMBDA_TASK_ROOT}/
+
+ENV PYTHONPATH /var/app
 
 # Create the data directory in the image (it will also exist at runtime in /tmp)
 RUN mkdir -p /tmp/crewai_data \
