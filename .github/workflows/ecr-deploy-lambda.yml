@@ -12,7 +12,6 @@ permissions:
 env:
   AWS_REGION: ap-southeast-1
   AWS_ACCOUNT_ID: 641675857341
-  LAMBDA_NAME: planner-agent
   ECR_REPOSITORY: planner_agent
   # runtime parameters for SAM template - update if you use different names
   API_NAME: planner-agent
@@ -110,14 +109,11 @@ jobs:
         env:
           AWS_REGION: ${{ env.AWS_REGION }}
           AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}
-          LAMBDA_NAME: ${{ env.LAMBDA_NAME }}
           API_NAME: ${{ env.API_NAME }}
           BUCKET_NAME: ${{ env.BUCKET_NAME }}
           STAGE_NAME: ${{ env.STAGE_NAME }}
         run: |
           set -euo pipefail
-          LAMBDA_ARN="arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:${LAMBDA_NAME}"
-
           sam deploy \
             --template-file .aws-sam/build/planner_agent/template.yaml \
             --stack-name planner-agent-stack \
@@ -126,9 +122,8 @@ jobs:
               ApiName=${API_NAME} \
               BucketName=${BUCKET_NAME} \
               StageName=${STAGE_NAME} \
-              LambdaFunctionArn=${LAMBDA_ARN} \
               LambdaExecutionRoleArn=arn:aws:iam::${AWS_ACCOUNT_ID}:role/planner-agent-LambdaRole \
-            --s3-bucket planner-agent-sam-artifacts-${AWS_ACCOUNT_ID}-${AWS_REGION} \
+            --s3-bucket planner-agent-sam-artifacts \
             --no-fail-on-empty-changeset
 
       - name: Wait for stack to stabilize (brief)
