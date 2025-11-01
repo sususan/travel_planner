@@ -45,6 +45,7 @@ Resources:
       Handler: planner_handler.lambda_handler
       CodeUri: ./        # point to the folder containing your code
       Runtime: python3.12
+      Role: !Ref LambdaExecutionRoleArn
       Architectures:
         - x86_64
       Policies:
@@ -71,6 +72,7 @@ Resources:
       Handler: final_formatter_handler.handler
       CodeUri: ./        # same CodeUri if the handler file is in planner_agent/
       Runtime: python3.12
+      Role: !Ref LambdaExecutionRoleArn
       Architectures:
         - x86_64
       Policies:
