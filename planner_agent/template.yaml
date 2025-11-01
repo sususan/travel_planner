@@ -14,10 +14,10 @@ Parameters:
     Default: dev
   LambdaExecutionRoleArn:
     Type: String
+    Description: ARN of an IAM role that Lambda functions will assume
 
 Globals:
   Function:
-    Runtime: python3.12
     Timeout: 180
     MemorySize: 1024
     Tracing: Active
@@ -39,11 +39,9 @@ Resources:
   PlannerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      # unique function name
       FunctionName: planner-agent
-      Handler: planner_handler.lambda_handler
+      PackageType: Image                         # <-- explicit for image-based Lambda
       ImageUri: 123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/planner_agent:latest
-      Runtime: python3.12
       Role: !Ref LambdaExecutionRoleArn
       Architectures:
         - x86_64
@@ -58,10 +56,9 @@ Resources:
   FinalFormatterFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub final-formatter-agent
-      Handler: final_formatter_handler.handler
+      FunctionName: final-formatter-agent
+      PackageType: Image                         # <-- explicit for image-based Lambda
       ImageUri: 123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/planner_agent:latest
-      Runtime: python3.12
       Role: !Ref LambdaExecutionRoleArn
       Architectures:
         - x86_64
@@ -74,8 +71,8 @@ Resources:
             RestApiId: !Ref PlannerApi
 
 Outputs:
-  ApiUrl:
-    Description: Invoke URL for the API
-    Value: !Sub "https://${PlannerApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/planner/plan"
-  BucketNameOut:
-    Value: !Ref BucketName
+  ApiBaseUrl:
+    Description: Base invoke URL for the API stage
+    Value: !Sub "https://${PlannerApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}"
+  PlannerPlanUrl:
+    Description: Full URL for the planner POST endpoint
