@@ -11,7 +11,7 @@ from planner_agent.tools.config import MAX_AGENT_ITERATIONS, Retrieval_Agent_Fol
 from planner_agent.tools.helper import aggregate_budget_range, _lunch_minutes
 from planner_agent.agent.planner_agent import PlannerAgent, CrewAIAdapter as PlannerCrewAdapter
 from planner_agent.agent.final_agent import FinalAgent, CrewAIAdapterForFinal
-from planner_agent.tools.s3io import update_json
+from planner_agent.tools.s3io import update_json_data
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -96,7 +96,7 @@ def plan_itinerary(payload: dict, fileName: str) -> Dict[str, Any]:
     # Add itinerary to payload and upload to S3
     payload["itinerary"] = itinerary
     # Upload to Retrieval Agent bucket
-    update_json(Retrieval_Agent_Folder+"/"+ fileName, payload)
+    update_json_data(Retrieval_Agent_Folder + "/" + fileName, payload)
 
     # Stage 2: Transport Retrieval (attach transport options) TO BE REMOVE
     transport_adapter =TRANSPORT_ADAPTER
@@ -118,7 +118,7 @@ def plan_itinerary(payload: dict, fileName: str) -> Dict[str, Any]:
         itinerary = new_it
         payload["itinerary"] = itinerary
         # Upload to Retrieval Agent bucket
-        update_json(Retrieval_Agent_Folder+"/"+ fileName, payload)
+        update_json_data(Retrieval_Agent_Folder + "/" + fileName, payload)
         metrics = new_metrics or metrics
         gates = validate_itinerary(itinerary, metrics, payload)
         # loop continues until gates pass or max iterations exhausted

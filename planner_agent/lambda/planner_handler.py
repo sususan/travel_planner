@@ -3,11 +3,12 @@ from __future__ import annotations
 
 import base64
 import json, os, logging
+import traceback
 
 from botocore.exceptions import ClientError
 
 from planner_agent.orchestrator.orchestrator import plan_itinerary
-from planner_agent.tools.s3io import get_json
+from planner_agent.tools.s3io import get_json_data
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -20,16 +21,13 @@ def lambda_handler(event, context):
         logger.info(f"JSON input: {json_input}")
         if json_input:
             parsed_json = json.loads(json_input)
-            logger.info(f"Parsed JSON content: {json.dumps(parsed_json, indent=2)}")
-        if not parsed_json:
             bucket_name = event.get("bucket_name")
             key = event.get("key")
             sender_agent = event.get("sender_agent")
             session = event.get("session")
-
             if bucket_name and key:
                 logger.info(f"Fetching JSON file from S3 bucket '{bucket_name}' with key '{key}'")
-                payload = get_json(key)
+                payload = get_json_data(key)
                 fileName = key.split('/')[-1]
                 # Call orchestrator to plan itinerary
                 logger.info(plan_itinerary(payload, fileName))
@@ -39,7 +37,9 @@ def lambda_handler(event, context):
 
     except json.JSONDecodeError as e:
         logger.error(f"Failed to parse JSON input: {str(e)}")
-
+    except Exception as e:
+        logger.exception(f"Error handling JSON input: {e}")
+        traceback.print_exc()
     return {
         "statusCode": 200,
         "body": f"Hello"
@@ -71,7 +71,7 @@ def s3_event_handler(event, context):
         # Perform necessary processing (e.g., logging, moving files, updating metadata)
         logger.info(f"Processing file from bucket '{bucket_name}' with key '{object_key}'")
         #payload = json.loads(s3_info.get("object", {}).get("body"))
-        payload = get_json(object_key)
+        payload = get_json_data(object_key)
         result = plan_itinerary(payload, object_key)
         logger.info("S3 event processed successfully")
         return {"statusCode": 200,

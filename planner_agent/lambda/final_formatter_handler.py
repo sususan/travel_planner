@@ -5,7 +5,7 @@ from datetime import time
 from planner_agent.agent.final_agent import FinalAgent
 from planner_agent.orchestrator.orchestrator import plan_itinerary, FINAL_CREW_ADAPTER
 from planner_agent.planner_core.core import explain
-from planner_agent.tools.s3io import get_json
+from planner_agent.tools.s3io import get_json_data
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -28,7 +28,7 @@ def lambda_handler(event, context):
 
             if bucket_name and key:
                 logger.info(f"Fetching JSON file from S3 bucket '{bucket_name}' with key '{key}'")
-                payload = get_json(key)
+                payload = get_json_data(key)
                 fileName = key.split('/')[-1]
                 # Call orchestrator to plan itinerary
                 # Stage 4: Final formatting using final agent

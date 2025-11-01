@@ -13,14 +13,14 @@ def put_json(key: str, obj: dict) -> str:
     _s3.put_object(Bucket=S3_BUCKET, Key=full_key, Body=json.dumps(obj).encode("utf-8"), ContentType="application/json")
     return full_key
 
-def get_json(key: str) -> dict:
+def get_json_data (key: str) -> dict:
     if not S3_BUCKET:
         raise RuntimeError("S3_BUCKET env not set")
     full_key = f"{key}"
     obj = _s3.get_object(Bucket=S3_BUCKET, Key=full_key)
     return json.loads(obj["Body"].read().decode("utf-8"))
 
-def update_json(key: str, payload: dict):
+def update_json_data(key: str, payload: dict):
     if not S3_BUCKET:
         raise RuntimeError("S3_BUCKET env not set")
 
