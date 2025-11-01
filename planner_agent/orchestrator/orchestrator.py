@@ -1,19 +1,20 @@
 # orchestrator.py
 # ---------- UPDATED (AGENTIC FLOW) ----------
 # Orchestrates the 4-stage workflow and loops between Transport Retrieval and Plan Validation/Repair.
-
+import logging
 import time
 from typing import Dict, Any
 from planner_agent.agent.transport import TransportAdapter, attach_transport_options
 from planner_agent.planner_core.core import score_candidates, shortlist, assign_to_days, explain, _safe_get, \
-    _pace_minutes, _minutes_for_item, _lunch_minutes  # your core heuristics
-from planner_agent.tools.config import MAX_AGENT_ITERATIONS
-from planner_agent.tools.helper import aggregate_budget_range
+    _pace_minutes, _minutes_for_item  # your core heuristics
+from planner_agent.tools.config import MAX_AGENT_ITERATIONS, Retrieval_Agent_Folder
+from planner_agent.tools.helper import aggregate_budget_range, _lunch_minutes
 from planner_agent.agent.planner_agent import PlannerAgent, CrewAIAdapter as PlannerCrewAdapter
 from planner_agent.agent.final_agent import FinalAgent, CrewAIAdapterForFinal
 from planner_agent.tools.s3io import update_json
 
-# Note: ensure module names/paths match your project layout.
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 # Configurable params
 TRANSPORT_ADAPTER = TransportAdapter()  # swap with real adapter if you have one
@@ -78,7 +79,7 @@ def validate_itinerary(itinerary: Dict[str, Any], metrics: Dict[str, Any], paylo
     gates["uncertainty_ratio"] = agg["uncertainty_ratio"]
     return gates
 
-def plan_itinerary(payload: dict, key: str) -> Dict[str, Any]:
+def plan_itinerary(payload: dict, fileName: str) -> Dict[str, Any]:
     """
     Orchestrator main flow (agentic-ready).
     1) Heuristic Plan (core)
@@ -94,8 +95,8 @@ def plan_itinerary(payload: dict, key: str) -> Dict[str, Any]:
 
     # Add itinerary to payload and upload to S3
     payload["itinerary"] = itinerary
-    # Upload to S3
-    update_json(key, payload)
+    # Upload to Retrieval Agent bucket
+    update_json(Retrieval_Agent_Folder+"/"+ fileName, payload)
 
     # Stage 2: Transport Retrieval (attach transport options) TO BE REMOVE
     transport_adapter =TRANSPORT_ADAPTER
@@ -116,8 +117,8 @@ def plan_itinerary(payload: dict, key: str) -> Dict[str, Any]:
         new_it = attach_transport_options(new_it, transport_adapter) # TO BE REMOVE
         itinerary = new_it
         payload["itinerary"] = itinerary
-        # Upload to S3
-        update_json(key, payload)
+        # Upload to Retrieval Agent bucket
+        update_json(Retrieval_Agent_Folder+"/"+ fileName, payload)
         metrics = new_metrics or metrics
         gates = validate_itinerary(itinerary, metrics, payload)
         # loop continues until gates pass or max iterations exhausted

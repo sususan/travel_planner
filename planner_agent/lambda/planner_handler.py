@@ -14,10 +14,33 @@ logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     logger.info("!! lambda_handler !!")
-    name = event.get("name", "world")
+    try:
+        parsed_json = None
+        json_input = event.get("json_input")
+        if json_input:
+            parsed_json = json.loads(json_input)
+            logger.info(f"Parsed JSON content: {json.dumps(parsed_json, indent=2)}")
+        if not parsed_json:
+            bucket_name = event.get("bucket_name")
+            key = event.get("key")
+            sender_agent = event.get("sender_agent")
+
+            if bucket_name and key:
+                logger.info(f"Fetching JSON file from S3 bucket '{bucket_name}' with key '{key}'")
+                payload = get_json(key)
+                fileName = key.split('/')[-1]
+                # Call orchestrator to plan itinerary
+                logger.info(plan_itinerary(payload, fileName))
+                logger.info(f"Fetched JSON content: {json.dumps(parsed_json, indent=2)}")
+            else:
+                logger.error("Missing 'bucket_name' or 'key' in event")
+
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse JSON input: {str(e)}")
+
     return {
         "statusCode": 200,
-        "body": f"Hello, {name}!"
+        "body": f"Hello"
     }
 
 # API Gateway REST/HTTP event compatible

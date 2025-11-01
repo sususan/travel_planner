@@ -21,10 +21,10 @@ def get_json(key: str) -> dict:
     return json.loads(obj["Body"].read().decode("utf-8"))
 
 def update_json(key: str, payload: dict):
-    """if not S3_BUCKET:
+    if not S3_BUCKET:
         raise RuntimeError("S3_BUCKET env not set")
 
     s3 = boto3.client('s3')
     bucket_name = S3_BUCKET  # Replace with your bucket name
     file_key = f"{key}"  # Replace with the file path in the bucket
-    s3.put_object(Bucket=bucket_name, Key=file_key, Body=json.dumps(payload))"""
+    s3.put_object(Bucket=bucket_name, Key=file_key, Body=json.dumps(payload))
