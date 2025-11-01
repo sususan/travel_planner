@@ -135,7 +135,7 @@ jobs:
               ApiName=${API_NAME} \
               BucketName=${BUCKET_NAME} \
               StageName=${STAGE_NAME} \
-              LambdaExecutionRoleArn=${ROLE_ARN}
+              LambdaExecutionRoleArn=${ROLE_ARN}\
               IMAGE_TAG=${IMAGE_TAG}
       
 
