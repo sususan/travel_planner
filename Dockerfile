@@ -21,4 +21,4 @@ RUN python -m pip install --upgrade pip \
 
 # Command: module.function — Lambda runtime looks for this
 # keep as you had it if that's your handler path
-CMD ["planner_agent.lambda.planner_handler.lambda_handler"]
+CMD ["lambda.planner_handler.lambda_handler"]
