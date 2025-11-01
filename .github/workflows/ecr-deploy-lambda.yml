@@ -69,17 +69,23 @@ jobs:
           CID=$(docker create "${IMAGE_URI}")
           echo "Created container id: $CID"
           rm -rf planner_agent || true
-          # copy the full planner_agent folder from inside the image into the repo workspace
-          docker cp "${CID}:/var/app/planner_agent" ./planner_agent || {
-            echo "Failed to copy /var/app/planner_agent from image — trying alternate path /var/task/planner_agent"
-            docker cp "${CID}:/var/task/planner_agent" ./planner_agent || (echo "planner_agent folder not found in image" && exit 1)
-          }
-          docker rm "$CID"
+          # try /var/task first (faster / canonical)
+          if docker cp "${CID}:/var/task/planner_agent" ./planner_agent 2>/dev/null; then
+            echo "Copied planner_agent from /var/task"
+          elif docker cp "${CID}:/var/app/planner_agent" ./planner_agent 2>/dev/null; then
+            echo "Copied planner_agent from /var/app"
+          else
+            echo "planner_agent not found in image (checked /var/task and /var/app); aborting"
+            docker rm "${CID}" >/dev/null 2>&1 || true
+            exit 1
+          fi
+          docker rm "${CID}" >/dev/null 2>&1 || true
           test -d planner_agent || (echo "planner_agent folder missing after copy" && exit 1)
           echo "planner_agent contents:"
           ls -la planner_agent
           echo "planner_agent tree:"
           find planner_agent -maxdepth 3 -type f -print || true
+          
 
       - name: Install SAM CLI & prerequisites
         run: |
