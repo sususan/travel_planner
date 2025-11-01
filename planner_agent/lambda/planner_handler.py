@@ -17,6 +17,8 @@ logger.setLevel(logging.INFO)
 def lambda_handler(event, context):
     logger.info("!! lambda_handler !!")
     session = ""
+    statusCode = 200
+    response = ""
     try:
         parsed_json = None
         json_input = event.get("body", "").strip("")
@@ -34,9 +36,10 @@ def lambda_handler(event, context):
                 # Call orchestrator to plan itinerary
                 ret = plan_itinerary(payload, fileName)
                 logger.info(f"Plan itinerary returned: {ret}")
-                return {
+                statusCode = 200
+                response = {
                     "statusCode": 200,
-                    "message": "Missing 'bucket_name' or 'key' in event",
+                    "message": "Itinerary planned successfully.",
                     "session": session,
                     'input_location': key,
                     'output_location': Transport_Agent_Folder + '/' + fileName,
@@ -44,20 +47,19 @@ def lambda_handler(event, context):
                 }
             else:
                 logger.error("Missing 'bucket_name' or 'key' in event")
-                return {
-                    "statusCode": 500,
-                    "message": "Missing 'bucket_name' or 'key' in event",
-                    "session": session
-                }
+                statusCode = 500
+                response =  "Missing 'bucket_name' or 'key' in event"
 
     except Exception as e:
         logger.exception(f"Error: {e}")
         traceback.print_exc()
-        return {
-            "statusCode": 500,
-            "message": f"{e}",
-            "session": session
-        }
+        statusCode = 500
+        response = f"Planner Agent Failed with: {e}"
+
+    return {
+        "statusCode": statusCode,
+        "body": response
+    }
 # API Gateway REST/HTTP event compatible
 
 def s3_event_handler(event, context):
