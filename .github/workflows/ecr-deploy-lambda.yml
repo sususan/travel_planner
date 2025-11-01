@@ -17,7 +17,6 @@ env:
   API_NAME: planner-agent
   BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
   STAGE_NAME: prod
-  IMAGE_TAG: ${GITHUB_SHA::8}-$(date +%s)
 
 jobs:
   build-and-deploy:
@@ -49,7 +48,7 @@ jobs:
       - name: Build Docker image
         run: |
           IMAGE_URI="${{env.AWS_ACCOUNT_ID}}.dkr.ecr.${{env.AWS_REGION}}.amazonaws.com/${{env.ECR_REPOSITORY}}"
-          IMAGE_TAG=${{ env.IMAGE_TAG }}
+          IMAGE_TAG="${GITHUB_SHA::8}-$(date +%s)"
           FULL_TAG="${IMAGE_URI}:${IMAGE_TAG}"
           echo "IMAGE_URI=${IMAGE_URI}" >> $GITHUB_ENV
           echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
@@ -115,7 +114,6 @@ jobs:
           STAGE_NAME: ${{ env.STAGE_NAME }}
           ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
           ROLE_ARN: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/planner-agent-LambdaRole
-          IMAGE_TAG: ${{ env.IMAGE_TAG }}
         run: |
           set -euo pipefail
           # optional: print template path to validate it exists
@@ -124,6 +122,11 @@ jobs:
           #validate, build, deploy (these run on the runner and use OIDC creds already configured)          
           #sam validate --template-file .aws-sam/build/planner_agent/template.yaml
           #sam build --template-file .aws-sam/build/planner_agent/template.yaml --build-dir .aws-sam/build/planner_agent
+          
+          # show the env vars (for debugging)
+          echo "IMAGE_URI=${IMAGE_URI:-}"
+          echo "IMAGE_TAG=${IMAGE_TAG:-}"
+          echo "FULL_TAG=${FULL_TAG:-}"
           
           sam deploy \
             --template-file .aws-sam/build/planner_agent/template.yaml \
@@ -135,8 +138,8 @@ jobs:
               ApiName=${API_NAME} \
               BucketName=${BUCKET_NAME} \
               StageName=${STAGE_NAME} \
-              LambdaExecutionRoleArn=${ROLE_ARN}\
-              IMAGETag=${IMAGE_TAG}
+              LambdaExecutionRoleArn=${ROLE_ARN} \
+              ImageTag=${IMAGE_TAG}
       
 
       - name: Wait for stack to stabilize (brief)
