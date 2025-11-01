@@ -24,6 +24,7 @@ def lambda_handler(event, context):
             bucket_name = event.get("bucket_name")
             key = event.get("key")
             sender_agent = event.get("sender_agent")
+            session = event.get("session")
 
             if bucket_name and key:
                 logger.info(f"Fetching JSON file from S3 bucket '{bucket_name}' with key '{key}'")
