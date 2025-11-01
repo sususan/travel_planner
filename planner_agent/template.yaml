@@ -40,7 +40,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       # unique function name
-      FunctionName: planner-agent
+      FunctionName: !Sub planner-agent
       Handler: planner_handler.lambda_handler
       CodeUri: ./        # point to the folder containing your code
       Runtime: python3.12
