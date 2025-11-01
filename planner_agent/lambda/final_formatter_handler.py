@@ -15,7 +15,8 @@ def lambda_handler(event, context):
     try:
         t0 = time.time()
         parsed_json = None
-        json_input = event.get("json_input")
+        json_input = event.get("body", "").strip("")
+        logger.info(f"JSON input: {json_input}")
         if json_input:
             parsed_json = json.loads(json_input)
             logger.info(f"Parsed JSON content: {json.dumps(parsed_json, indent=2)}")
