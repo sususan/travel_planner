@@ -11,7 +11,7 @@ Parameters:
     Default: planner-agent-artifacts
   StageName:
     Type: String
-    Default: dev
+    Default: prod
   LambdaExecutionRoleArn:
     Type: String
     Description: ARN of an IAM role that Lambda functions will assume
@@ -39,7 +39,7 @@ Resources:
   PlannerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: planner-agent
+      FunctionName: !Sub "${StageName}-planner-agent"
       PackageType: Image
       ImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/planner-agent:latest'
       ImageConfig:
@@ -58,7 +58,7 @@ Resources:
   FinalFormatterFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: final-formatter-agent
+      FunctionName: !Sub "${StageName}-final-formatter-agent"
       PackageType: Image                         # <-- explicit for image-based Lambda
       ImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/planner-agent:latest'
       ImageConfig:
