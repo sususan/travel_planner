@@ -7,7 +7,7 @@ from typing import Dict, Any
 from planner_agent.agent.transport import TransportAdapter, attach_transport_options
 from planner_agent.planner_core.core import score_candidates, shortlist, assign_to_days, explain, _safe_get, \
     _pace_minutes, _minutes_for_item  # your core heuristics
-from planner_agent.tools.config import MAX_AGENT_ITERATIONS, Retrieval_Agent_Folder
+from planner_agent.tools.config import MAX_AGENT_ITERATIONS, Transport_Agent_Folder
 from planner_agent.tools.helper import aggregate_budget_range, _lunch_minutes
 from planner_agent.agent.planner_agent import PlannerAgent, CrewAIAdapter as PlannerCrewAdapter
 from planner_agent.agent.final_agent import FinalAgent, CrewAIAdapterForFinal
@@ -96,7 +96,7 @@ def plan_itinerary(payload: dict, fileName: str) -> Dict[str, Any]:
     # Add itinerary to payload and upload to S3
     payload["itinerary"] = itinerary
     # Upload to Retrieval Agent bucket
-    update_json_data(Retrieval_Agent_Folder + "/" + fileName, payload)
+    update_json_data(Transport_Agent_Folder + "/" + fileName, payload)
 
     # Stage 2: Transport Retrieval (attach transport options) TO BE REMOVE
     transport_adapter =TRANSPORT_ADAPTER
@@ -118,7 +118,7 @@ def plan_itinerary(payload: dict, fileName: str) -> Dict[str, Any]:
         itinerary = new_it
         payload["itinerary"] = itinerary
         # Upload to Retrieval Agent bucket
-        update_json_data(Retrieval_Agent_Folder + "/" + fileName, payload)
+        update_json_data(Transport_Agent_Folder + "/" + fileName, payload)
         metrics = new_metrics or metrics
         gates = validate_itinerary(itinerary, metrics, payload)
         # loop continues until gates pass or max iterations exhausted
