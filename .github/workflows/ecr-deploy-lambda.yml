@@ -119,12 +119,12 @@ jobs:
             --template-file .aws-sam/build/planner_agent/template.yaml \
             --stack-name planner-agent-stack \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+            --image-repository ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }} \
             --parameter-overrides \
               ApiName=${API_NAME} \
               BucketName=${BUCKET_NAME} \
               StageName=${STAGE_NAME} \
               LambdaExecutionRoleArn=arn:aws:iam::${AWS_ACCOUNT_ID}:role/planner-agent-LambdaRole \
-            --image-repository ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }} \
             --no-fail-on-empty-changeset
 
       - name: Wait for stack to stabilize (brief)
