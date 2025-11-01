@@ -78,5 +78,16 @@ Outputs:
   ApiBaseUrl:
     Description: Base invoke URL for the API stage
     Value: !Sub "https://${PlannerApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}"
+
   PlannerPlanUrl:
     Description: Full URL for the planner POST endpoint
+    Value: !Sub "https://${PlannerApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/planner/plan"
+
+  PlannerFinalUrl:
+    Description: Full URL for the final formatter POST endpoint
+    Value: !Sub "https://${PlannerApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/planner/final"
+
+  BucketNameOut:
+    Description: S3 bucket used for artifacts
+    Value: !Ref BucketName
+
