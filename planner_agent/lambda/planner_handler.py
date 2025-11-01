@@ -8,6 +8,7 @@ import traceback
 from botocore.exceptions import ClientError
 
 from planner_agent.orchestrator.orchestrator import plan_itinerary
+from planner_agent.tools.config import Transport_Agent_Folder
 from planner_agent.tools.s3io import get_json_data
 
 logger = logging.getLogger()
@@ -15,6 +16,7 @@ logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     logger.info("!! lambda_handler !!")
+    session = ""
     try:
         parsed_json = None
         json_input = event.get("body", "").strip("")
@@ -30,21 +32,32 @@ def lambda_handler(event, context):
                 payload = get_json_data(key)
                 fileName = key.split('/')[-1]
                 # Call orchestrator to plan itinerary
-                logger.info(plan_itinerary(payload, fileName))
-                logger.info(f"Fetched JSON content: {json.dumps(parsed_json, indent=2)}")
+                ret = plan_itinerary(payload, fileName)
+                logger.info(f"Plan itinerary returned: {ret}")
+                return {
+                    "statusCode": 200,
+                    "message": "Missing 'bucket_name' or 'key' in event",
+                    "session": session,
+                    'input_location': key,
+                    'output_location': Transport_Agent_Folder + '/' + fileName,
+                    'summary': ret
+                }
             else:
                 logger.error("Missing 'bucket_name' or 'key' in event")
+                return {
+                    "statusCode": 500,
+                    "message": "Missing 'bucket_name' or 'key' in event",
+                    "session": session
+                }
 
-    except json.JSONDecodeError as e:
-        logger.error(f"Failed to parse JSON input: {str(e)}")
     except Exception as e:
         logger.exception(f"Error: {e}")
         traceback.print_exc()
-    return {
-        "statusCode": 200,
-        "body": f"Hello"
-    }
-
+        return {
+            "statusCode": 500,
+            "message": f"{e}",
+            "session": session
+        }
 # API Gateway REST/HTTP event compatible
 
 def s3_event_handler(event, context):
