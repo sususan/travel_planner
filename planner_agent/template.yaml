@@ -15,7 +15,7 @@ Parameters:
   LambdaExecutionRoleArn:
     Type: String
     Description: ARN of an IAM role that Lambda functions will assume
-  IMAGE_URI:
+  IMAGEURI:
     Type: String
     Description: ECR URI
 
@@ -44,7 +44,7 @@ Resources:
     Properties:
       FunctionName: planner-agent
       PackageType: Image
-      ImageUri: !Ref IMAGE_URI
+      ImageUri: !Ref IMAGEURI
       ImageConfig:
         Command: ["planner_handler.lambda_handler"]
       Role: !Ref LambdaExecutionRoleArn
@@ -63,7 +63,7 @@ Resources:
     Properties:
       FunctionName: final-formatter-agent
       PackageType: Image                         # <-- explicit for image-based Lambda
-      ImageUri: !Ref IMAGE_URI
+      ImageUri: !Ref IMAGEURI
       ImageConfig:
         Command: ["final_formatter_handler.handler"]
       Role: !Ref LambdaExecutionRoleArn
