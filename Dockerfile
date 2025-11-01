@@ -7,7 +7,7 @@ ENV XDG_DATA_HOME=/tmp
 
 # Copy application code
 COPY requirements.txt ${LAMBDA_TASK_ROOT}/
-COPY planner_agent/ /var/app/
+COPY planner_agent/ /var/app/planner_agent/
 #COPY planner_agent/template.yaml /var/app/planner_agent/
 #COPY planner_agent/ ${LAMBDA_TASK_ROOT}/
 
@@ -22,4 +22,4 @@ RUN python -m pip install --upgrade pip \
 
 # Command: module.function — Lambda runtime looks for this
 # keep as you had it if that's your handler path
-CMD ["lambda.planner_handler.lambda_handler"]
+CMD ["planner_agent.lambda.planner_handler.lambda_handler"]
