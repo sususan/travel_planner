@@ -123,6 +123,7 @@ jobs:
               BucketName=${BUCKET_NAME} \
               StageName=${STAGE_NAME} \
               LambdaExecutionRoleArn=arn:aws:iam::${AWS_ACCOUNT_ID}:role/planner-agent-LambdaRole \
+              IMAGE_URI="${{env.AWS_ACCOUNT_ID}}.dkr.ecr.${{env.AWS_REGION}}.amazonaws.com/${{env.ECR_REPOSITORY}}"
             --s3-bucket planner-agent-sam-artifacts \
             --no-fail-on-empty-changeset
 

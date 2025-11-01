@@ -15,6 +15,9 @@ Parameters:
   LambdaExecutionRoleArn:
     Type: String
     Description: ARN of an IAM role that Lambda functions will assume
+  IMAGE_URI:
+    Type: String
+    Description: ECR URI
 
 Globals:
   Function:
@@ -40,8 +43,10 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: planner-agent
-      PackageType: Image                         # <-- explicit for image-based Lambda
-      ImageUri: 123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/planner_agent:latest
+      PackageType: Image
+      ImageUri: !Ref IMAGE_URI
+      ImageConfig:
+        Command: ["planner_handler.lambda_handler"]
       Role: !Ref LambdaExecutionRoleArn
       Architectures:
         - x86_64
@@ -58,7 +63,9 @@ Resources:
     Properties:
       FunctionName: final-formatter-agent
       PackageType: Image                         # <-- explicit for image-based Lambda
-      ImageUri: 123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/planner_agent:latest
+      ImageUri: !Ref IMAGE_URI
+      ImageConfig:
+        Command: ["final_formatter_handler.handler"]
       Role: !Ref LambdaExecutionRoleArn
       Architectures:
         - x86_64
