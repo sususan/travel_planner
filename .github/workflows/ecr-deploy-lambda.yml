@@ -70,9 +70,9 @@ jobs:
           echo "Created container id: $CID"
           rm -rf planner_agent || true
           # try /var/task first (faster / canonical)
-          if docker cp "${CID}:/var/task/planner_agent" ./planner_agent 2>/dev/null; then
+          if docker cp "${CID}:/var/task" ./planner_agent 2>/dev/null; then
             echo "Copied planner_agent from /var/task"
-          elif docker cp "${CID}:/var/app/planner_agent" ./planner_agent 2>/dev/null; then
+          elif docker cp "${CID}:/var/app" ./planner_agent 2>/dev/null; then
             echo "Copied planner_agent from /var/app"
           else
             echo "planner_agent not found in image (checked /var/task and /var/app); aborting"
