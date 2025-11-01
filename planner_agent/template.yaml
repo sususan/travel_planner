@@ -15,7 +15,7 @@ Parameters:
   LambdaExecutionRoleArn:
     Type: String
     Description: ARN of an IAM role that Lambda functions will assume
-  IMAGETag:
+  ImageTag:
     Type: String
     Description: ECR Image tag
 
@@ -27,7 +27,7 @@ Globals:
     Environment:
       Variables:
         LambdaExecutionRoleArn: !Ref LambdaExecutionRoleArn
-        IMAGETag: !Ref IMAGETag
+        ImageTag: !Ref ImageTag
         S3_BUCKET: !Ref BucketName
         STAGE: !Ref StageName
         CREW_LLM_MODEL: gpt-4o-mini
@@ -45,7 +45,7 @@ Resources:
     Properties:
       FunctionName: !Sub "planner-agent-${StageName}"
       PackageType: Image
-      ImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/planner-agent:${IMAGETag}'
+      ImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/planner-agent:${ImageTag}'
       ImageConfig:
         Command: ["planner_handler.lambda_handler"]
       Role: !Ref LambdaExecutionRoleArn
@@ -64,7 +64,7 @@ Resources:
     Properties:
       FunctionName: !Sub "final-formatter-agent-${StageName}"
       PackageType: Image                         # <-- explicit for image-based Lambda
-      ImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/planner-agent:${IMAGETag}'
+      ImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/planner-agent:${ImageTag}'
       ImageConfig:
         Command: ["final_formatter_handler.handler"]
       Role: !Ref LambdaExecutionRoleArn
