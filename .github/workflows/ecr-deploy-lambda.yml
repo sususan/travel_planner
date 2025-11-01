@@ -136,7 +136,7 @@ jobs:
               BucketName=${BUCKET_NAME} \
               StageName=${STAGE_NAME} \
               LambdaExecutionRoleArn=${ROLE_ARN}\
-              IMAGE_TAG=${IMAGE_TAG}
+              IMAGETag=${IMAGE_TAG}
       
 
       - name: Wait for stack to stabilize (brief)

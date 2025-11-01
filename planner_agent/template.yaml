@@ -27,7 +27,7 @@ Globals:
     Environment:
       Variables:
         LambdaExecutionRoleArn: !Ref LambdaExecutionRoleArn
-        IMAGETag: !Ref IMAGE_TAG
+        IMAGETag: !Ref IMAGETag
         S3_BUCKET: !Ref BucketName
         STAGE: !Ref StageName
         CREW_LLM_MODEL: gpt-4o-mini
