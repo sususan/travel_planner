@@ -26,7 +26,6 @@ Globals:
         LambdaExecutionRoleArn: !Ref LambdaExecutionRoleArn
         S3_BUCKET: !Ref BucketName
         STAGE: !Ref StageName
-        CW_NAMESPACE: PlannerAgent
         CREW_LLM_MODEL: gpt-4o-mini
 
 Resources:
@@ -48,15 +47,6 @@ Resources:
       Role: !Ref LambdaExecutionRoleArn
       Architectures:
         - x86_64
-      Policies:
-        - S3CrudPolicy:
-            BucketName: !Ref BucketName
-        - Statement:
-            Effect: Allow
-            Action:
-              - cloudwatch:PutMetricData
-            Resource: '*'
-        - AWSLambdaBasicExecutionRole    # ensures basic logging permissions
       Events:
         ApiEvent:
           Type: Api
@@ -75,15 +65,6 @@ Resources:
       Role: !Ref LambdaExecutionRoleArn
       Architectures:
         - x86_64
-      Policies:
-        - S3CrudPolicy:
-            BucketName: !Ref BucketName
-        - Statement:
-            Effect: Allow
-            Action:
-              - cloudwatch:PutMetricData
-            Resource: '*'
-        - AWSLambdaBasicExecutionRole
       Events:
         ApiEvent:
           Type: Api
