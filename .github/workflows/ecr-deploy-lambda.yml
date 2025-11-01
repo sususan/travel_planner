@@ -17,7 +17,7 @@ env:
   API_NAME: planner-agent
   BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
   STAGE_NAME: prod
-  IMAGE_TAG: "${GITHUB_SHA::8}-$(date +%s)"
+  IMAGE_TAG: ${GITHUB_SHA::8}-$(date +%s)
 
 jobs:
   build-and-deploy:
