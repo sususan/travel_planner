@@ -1,5 +1,6 @@
 import json
 import logging
+import traceback
 from datetime import time
 
 from planner_agent.agent.final_agent import FinalAgent
@@ -19,13 +20,10 @@ def lambda_handler(event, context):
         logger.info(f"JSON input: {json_input}")
         if json_input:
             parsed_json = json.loads(json_input)
-            logger.info(f"Parsed JSON content: {json.dumps(parsed_json, indent=2)}")
-        if not parsed_json:
-            bucket_name = event.get("bucket_name")
-            key = event.get("key")
-            sender_agent = event.get("sender_agent")
-            session = event.get("session")
-
+            bucket_name = parsed_json.get("bucket_name")
+            key = parsed_json.get("key")
+            sender_agent = parsed_json.get("sender_agent")
+            session = parsed_json.get("session")
             if bucket_name and key:
                 logger.info(f"Fetching JSON file from S3 bucket '{bucket_name}' with key '{key}'")
                 payload = get_json_data(key)
@@ -46,6 +44,9 @@ def lambda_handler(event, context):
 
     except json.JSONDecodeError as e:
         logger.error(f"Failed to parse JSON input: {str(e)}")
+    except Exception as e:
+        logger.exception(f"Error: {e}")
+        traceback.print_exc()
 
     return {
         #"scored": scored,
