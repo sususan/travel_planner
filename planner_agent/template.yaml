@@ -45,7 +45,7 @@ Resources:
     Properties:
       FunctionName: !Sub "planner-agent-${StageName}"
       PackageType: Image
-      ImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/planner-agent:${ImageTag}'
+      ImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/planner_agent:${ImageTag}'
       ImageConfig:
         Command: ["planner_handler.lambda_handler"]
       Role: !Ref LambdaExecutionRoleArn
@@ -64,7 +64,7 @@ Resources:
     Properties:
       FunctionName: !Sub "final-formatter-agent-${StageName}"
       PackageType: Image                         # <-- explicit for image-based Lambda
-      ImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/planner-agent:${ImageTag}'
+      ImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/planner_agent:${ImageTag}'
       ImageConfig:
         Command: ["final_formatter_handler.handler"]
       Role: !Ref LambdaExecutionRoleArn
