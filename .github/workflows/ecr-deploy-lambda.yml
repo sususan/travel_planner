@@ -105,7 +105,7 @@ jobs:
             echo "Deleted aws-sam-cli-managed-default"
           } || echo "No aws-sam-cli-managed-default stack found; continuing"
 
-      - name: SAM deploy (non-interactive, resolve-s3)
+      - name: SAM deploy (non-interactive, images pre-pushed)
         env:
           AWS_REGION: ${{ env.AWS_REGION }}
           AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}
@@ -113,19 +113,24 @@ jobs:
           BUCKET_NAME: ${{ env.BUCKET_NAME }}
           STAGE_NAME: ${{ env.STAGE_NAME }}
           ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+          ROLE_ARN: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/planner-agent-LambdaRole
         run: |
           set -euo pipefail
+          # optional: print template path to validate it exists
+          ls -la .aws-sam/build/planner_agent/template.yaml
+
           sam deploy \
             --template-file .aws-sam/build/planner_agent/template.yaml \
             --stack-name planner-agent-stack \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --image-repository ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY} \
-            --no-fail-on-empty-changeset
+            --no-fail-on-empty-changeset \
             --parameter-overrides \
               ApiName=${API_NAME} \
               BucketName=${BUCKET_NAME} \
               StageName=${STAGE_NAME} \
-              LambdaExecutionRoleArn=arn:aws:iam::${AWS_ACCOUNT_ID}:role/planner-agent-LambdaRole \
+              LambdaExecutionRoleArn=${ROLE_ARN}
+      
 
       - name: Wait for stack to stabilize (brief)
         run: |
