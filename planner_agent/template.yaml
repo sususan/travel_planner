@@ -40,7 +40,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       # unique function name
-      FunctionName: !Sub planner-agent
+      FunctionName: planner-agent
       Handler: planner_handler.lambda_handler
       CodeUri: ./        # point to the folder containing your code
       Runtime: python3.12
@@ -58,7 +58,7 @@ Resources:
   FinalFormatterFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub final-formatter-agent
+      FunctionName: final-formatter-agent
       Handler: final_formatter_handler.handler
       CodeUri: ./        # same CodeUri if the handler file is in planner_agent/
       Runtime: python3.12
