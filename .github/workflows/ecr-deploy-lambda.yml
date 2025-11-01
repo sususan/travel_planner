@@ -28,7 +28,7 @@ jobs:
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::641675857341:role/GH-OIDCRole-PlannerAgent
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Log in to Amazon ECR
@@ -119,9 +119,9 @@ jobs:
           # optional: print template path to validate it exists
           ls -la .aws-sam/build/planner_agent/template.yaml
           
-          $validate, build, deploy (these run on the runner and use OIDC creds already configured)
-          sam validate --template-file .aws-sam/build/planner_agent/template.yaml
-          sam build --template-file .aws-sam/build/planner_agent/template.yaml --build-dir .aws-sam/build/planner_agent
+          #validate, build, deploy (these run on the runner and use OIDC creds already configured)          
+          #sam validate --template-file .aws-sam/build/planner_agent/template.yaml
+          #sam build --template-file .aws-sam/build/planner_agent/template.yaml --build-dir .aws-sam/build/planner_agent
           
           sam deploy \
             --template-file .aws-sam/build/planner_agent/template.yaml \
