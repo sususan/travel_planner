@@ -15,6 +15,7 @@ logger.setLevel(logging.INFO)
 def lambda_handler(event, context):
     logger.info("!! lambda_handler !!")
     session = ""
+    logger.info(os.getenv("OPENAI_API_KEY"))
     statusCode = 200
     response = ""
     try:
