@@ -15,7 +15,6 @@ logger.setLevel(logging.INFO)
 def lambda_handler(event, context):
     logger.info("!! lambda_handler !!")
     logger.info(os.environ.get('OPENAI_API_KEY'))
-    logger.info(OPENAI_API_KEY)
 
     response_data = lambda_synchronous_call(TransportAgentARN, "iss-travel-planner", "transport_agent/active/20251031T003447_f312ea72.json", "Planner Agent", "f312ea72")
     logger.info(response_data)
