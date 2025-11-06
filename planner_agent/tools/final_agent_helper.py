@@ -1,9 +1,19 @@
 import json
 import io
 from datetime import datetime
+
+from bs4 import BeautifulSoup
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
+
+def create_pdf_bytes_plain_from_html(html, title="Itinerary Export"):
+    # strip tags
+    soup = BeautifulSoup(html, "html.parser")
+    text = soup.get_text("\n")  # join with newlines for <p>, <br>, etc.
+
+    # then reuse your existing function or embed printing logic
+    return create_pdf_bytes(text, title=title)
 
 def create_pdf_bytes(text, title="Itinerary Export"):
     """

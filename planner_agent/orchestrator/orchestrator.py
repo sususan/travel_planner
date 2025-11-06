@@ -12,7 +12,7 @@ from planner_agent.agent.transport import TransportAdapter, attach_transport_opt
 from planner_agent.planner_core.core import score_candidates, shortlist, assign_to_days, explain
 from planner_agent.tools.config import MAX_AGENT_ITERATIONS, Summarizer_Agent_Folder, Final_ADAPTERAPI_ENDPOINT, \
     X_API_Key, Transport_Agent_Folder, TRANSPORT_ADAPTERAPI_ENDPOINT, TransportAgentARN, S3_BUCKET
-from planner_agent.tools.final_agent_helper import create_pdf_bytes
+from planner_agent.tools.final_agent_helper import create_pdf_bytes, create_pdf_bytes_plain_from_html
 from planner_agent.tools.helper import aggregate_budget_range, _lunch_minutes, _pace_minutes, _minutes_for_item
 from planner_agent.agent.planner_agent import PlannerAgent, CrewAIAdapter as PlannerCrewAdapter
 from planner_agent.agent.final_agent import CrewAIAdapterForFinal, CrewAIAdapterForFinal
@@ -205,7 +205,7 @@ def sumarrizer(payload: dict, bucket_name: str, fileName: str, session: str = ""
         # Build human-readable text (includes explanation and gates)
         human_text = response.get("human_summary", "")
         # Create PDF
-        pdf_bytes = create_pdf_bytes(human_text, title="Final Itinerary (Human-readable)")
+        pdf_bytes = create_pdf_bytes_plain_from_html(human_text, title="Final Itinerary (Human-readable)") #create_pdf_bytes(human_text, title="Final Itinerary (Human-readable)")
 
         # Upload PDF to S3 under final_outputs/
         pdf_key = f"final_outputs/{fileName.rsplit('.', 1)[0]}.pdf"
