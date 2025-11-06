@@ -1,0 +1,2377 @@
+{
+  "status_code": 200,
+  "interest": [
+    "exploring near Changi Airport"
+  ],
+  "message": "I am planning to travel to singapore for 3 days from june 1 to june 3 with a budget of around 100 dollars and I prefer moderate travel pace\nI am planning to travel to singapore for 3 days from june 1 to june 3 with a budget of around 100 dollars and I prefer moderate travel pace\n2 adults 3 children\nI have no eco preferences. I am a non-veg person. I love to explore near changi airport\nI prefer to explore near the changi airport which is my inetrest\nI have no specific accessibility needs. and i prefer to stay near the jurong mall\nI prefer to travel as a family ",
+  "json_filename": "sessions/f312ea72.json",
+  "session_id": "f312ea72",
+  "timestamp": "2025-10-31T00:34:47.763036",
+  "requirements": {
+    "destination_city": "Singapore",
+    "trip_dates": {
+      "start_date": "2025-06-01",
+      "end_date": "2025-06-03"
+    },
+    "duration_days": 3,
+    "travelers": {
+      "adults": 2,
+      "children": 3
+    },
+    "budget_total_sgd": 1000,
+    "pace": "moderate",
+    "optional": {
+      "eco_preferences": "no",
+      "dietary_preferences": "non-veg",
+      "interests": [
+        "exploring near Changi Airport"
+      ],
+      "uninterests": [],
+      "accessibility_needs": "no_preference",
+      "accommodation_location": {
+        "neighborhood": "near the Jurong Mall",
+        "lat": 1.3397443,
+        "lng": 103.7067297,
+        "place_id": "ChIJa9YM2-wP2jERmOUStQKyiS0",
+        "name": "Jurong Point"
+      },
+      "group_type": "family"
+    }
+  },
+  "retrieval": {
+    "retrieval_id": "ret_20251104_170143",
+    "time_elapsed": 122.06,
+    "places_found": 45,
+    "attractions_count": 24,
+    "food_count": 21,
+    "conditions": {
+      "attractions_needed": 24,
+      "food_places_needed": 21,
+      "total_needed": 45,
+      "pace_value": 4,
+      "attraction_multiplier": 2.0,
+      "food_multiplier": 1.0,
+      "num_geo_clusters": 7
+    },
+    "places_matrix": {
+      "nodes": [
+        {
+          "place_id": "ChIJ483Qk9YX2jERA0VOQV7d1tY",
+          "name": "Singapore Changi Airport",
+          "types": [
+            "international_airport",
+            "shopping_mall",
+            "tourist_attraction",
+            "airport",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "international_airport",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 2.5,
+          "low_carbon_score": 50.0,
+          "geo": {
+            "latitude": 1.358604,
+            "longitude": 103.98994359999999
+          },
+          "geo_cluster_id": "east",
+          "address": "60 Airport Blvd., Singapore 819643",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "00:00-23:59",
+            "tuesday": "00:00-23:59",
+            "wednesday": "00:00-23:59",
+            "thursday": "00:00-23:59",
+            "friday": "00:00-23:59",
+            "saturday": "00:00-23:59",
+            "sunday": "00:00-23:59"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Passenger & cargo hub with 4 modern terminals plus buses & trains to the city center.",
+          "links": null,
+          "rating": 4.7,
+          "userRatingCount": 61663,
+          "tags": [
+            "international_airport",
+            "wheelchair-friendly",
+            "airport",
+            "shopping",
+            "tourist-spot",
+            "highly-rated",
+            "changi"
+          ]
+        },
+        {
+          "place_id": "ChIJw3l-FL4X2jERw2pScvHQCbg",
+          "name": "Jewel Changi Airport",
+          "types": [
+            "shopping_mall",
+            "tourist_attraction",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "shopping_mall",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 3.0,
+          "low_carbon_score": 55.0,
+          "geo": {
+            "latitude": 1.3602094,
+            "longitude": 103.9897598
+          },
+          "geo_cluster_id": "east",
+          "address": "Singapore",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "00:00-23:59",
+            "tuesday": "00:00-23:59",
+            "wednesday": "00:00-23:59",
+            "thursday": "00:00-23:59",
+            "friday": "00:00-23:59",
+            "saturday": "00:00-23:59",
+            "sunday": "00:00-23:59"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Lush, 10-floor retail complex with hundreds of shops & eateries, indoor gardens & a 40-m. waterfall.",
+          "links": null,
+          "rating": 4.8,
+          "userRatingCount": 89875,
+          "tags": [
+            "shopping_mall",
+            "wheelchair-friendly",
+            "shopping",
+            "tourist-spot",
+            "highly-rated",
+            "changi"
+          ]
+        },
+        {
+          "place_id": "ChIJA-6mTVA82jERPqq88UBaGlg",
+          "name": "Loyang Tua Pek Kong",
+          "types": [
+            "tourist_attraction",
+            "place_of_worship",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "place_of_worship",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 0.9,
+          "low_carbon_score": 30.0,
+          "geo": {
+            "latitude": 1.3710939,
+            "longitude": 103.96994029999999
+          },
+          "geo_cluster_id": "east",
+          "address": "20 Loyang Way, Singapore 508774",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "08:00-22:00",
+            "tuesday": "08:00-22:00",
+            "wednesday": "08:00-22:00",
+            "thursday": "08:00-22:00",
+            "friday": "08:00-22:00",
+            "saturday": "08:00-22:00",
+            "sunday": "08:00-22:00"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Large suburban temple with gilded shrines & statues of Buddhist, Taoist & Hindu deities.",
+          "links": null,
+          "rating": 4.7,
+          "userRatingCount": 2448,
+          "tags": [
+            "place_of_worship",
+            "wheelchair-friendly",
+            "tourist-spot",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJK_yDUbE92jERcjxTDAYmTrk",
+          "name": "Wild Wild Wet",
+          "types": [
+            "water_park",
+            "amusement_park",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "water_park",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 6.0,
+          "low_carbon_score": 68.0,
+          "geo": {
+            "latitude": 1.3775946,
+            "longitude": 103.9544243
+          },
+          "geo_cluster_id": "east",
+          "address": "1 Pasir Ris Cl, Singapore 519599",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "12:00-18:00",
+            "tuesday": "Closed",
+            "wednesday": "12:00-18:00",
+            "thursday": "12:00-18:00",
+            "friday": "12:00-18:00",
+            "saturday": "11:00-18:00",
+            "sunday": "11:00-18:00"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Playful water park with serpentine slides, a wave pool & a lazy river, plus eateries & a swim shop.",
+          "links": null,
+          "rating": 4.3,
+          "userRatingCount": 4361,
+          "tags": [
+            "water_park",
+            "wheelchair-friendly",
+            "water-park",
+            "theme-park"
+          ]
+        },
+        {
+          "place_id": "ChIJUzbaYws82jERXHKMRlUKIug",
+          "name": "Changi Beach Park",
+          "types": [
+            "park",
+            "tourist_attraction",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "park",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 0.0,
+          "low_carbon_score": 0.0,
+          "geo": {
+            "latitude": 1.3912863,
+            "longitude": 103.99054640000001
+          },
+          "geo_cluster_id": "east",
+          "address": "Nicoll Dr, Singapore 498991",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "00:00-23:59",
+            "tuesday": "00:00-23:59",
+            "wednesday": "00:00-23:59",
+            "thursday": "00:00-23:59",
+            "friday": "00:00-23:59",
+            "saturday": "00:00-23:59",
+            "sunday": "00:00-23:59"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "A 3.3 km stretch of palm-fringed, sandy beach backed by cycling paths, BBQ areas & cafes.",
+          "links": null,
+          "rating": 4.5,
+          "userRatingCount": 7633,
+          "tags": [
+            "park",
+            "wheelchair-friendly",
+            "tourist-spot",
+            "highly-rated",
+            "changi"
+          ]
+        },
+        {
+          "place_id": "ChIJs91Di4w82jERasclvd3Rb18",
+          "name": "Butterfly Garden",
+          "types": [
+            "garden",
+            "tourist_attraction",
+            "park",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "garden",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 0.2,
+          "low_carbon_score": 10.0,
+          "geo": {
+            "latitude": 1.3578417999999999,
+            "longitude": 103.986278
+          },
+          "geo_cluster_id": "east",
+          "address": "70 Airport Blvd., Singapore 819661",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "00:00-23:59",
+            "tuesday": "00:00-23:59",
+            "wednesday": "00:00-23:59",
+            "thursday": "00:00-23:59",
+            "friday": "00:00-23:59",
+            "saturday": "00:00-23:59",
+            "sunday": "00:00-23:59"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Lush butterfly garden featuring 40 species, a grotto waterfall & flowering plants in an airport.",
+          "links": null,
+          "rating": 4.5,
+          "userRatingCount": 11584,
+          "tags": [
+            "garden",
+            "wheelchair-friendly",
+            "tourist-spot",
+            "park",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJ2XkoNao92jERap9Ra-TNbE4",
+          "name": "Changi Jurassic Mile",
+          "types": [
+            "amusement_park",
+            "tourist_attraction",
+            "amusement_center",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "amusement_center",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 3.5,
+          "low_carbon_score": 58.0,
+          "geo": {
+            "latitude": 1.3348183999999998,
+            "longitude": 103.98350529999999
+          },
+          "geo_cluster_id": "east",
+          "address": "Airport Blvd., Singapore",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "00:00-23:59",
+            "tuesday": "00:00-23:59",
+            "wednesday": "00:00-23:59",
+            "thursday": "00:00-23:59",
+            "friday": "00:00-23:59",
+            "saturday": "00:00-23:59",
+            "sunday": "00:00-23:59"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Giant eggs & life-size dinosaurs, including a huge T-Rex, dot this outdoor jogging & cycling trail.",
+          "links": null,
+          "rating": 4.3,
+          "userRatingCount": 2530,
+          "tags": [
+            "amusement_center",
+            "wheelchair-friendly",
+            "theme-park",
+            "tourist-spot",
+            "entertainment",
+            "changi"
+          ]
+        },
+        {
+          "place_id": "ChIJKeGkUgA92jERQCZGawcvR8w",
+          "name": "The Wonderfall",
+          "types": [
+            "tourist_attraction",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "tourist_attraction",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 1.5,
+          "low_carbon_score": 38.0,
+          "geo": {
+            "latitude": 1.3552085999999999,
+            "longitude": 103.9887909
+          },
+          "geo_cluster_id": "east",
+          "address": "Changi Airport Terminal 2, Singapore",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "00:00-23:59",
+            "tuesday": "00:00-23:59",
+            "wednesday": "00:00-23:59",
+            "thursday": "00:00-23:59",
+            "friday": "00:00-23:59",
+            "saturday": "00:00-23:59",
+            "sunday": "00:00-23:59"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Located within Changi Airport Terminal 2, The Wonderfall is a captivating indoor waterfall that offers a serene escape for travelers and visitors alike. Easily accessible via the Changi Airport MRT station, this attraction is perfect for those with a layover or anyone exploring the airport's amenities. Known for its mesmerizing water displays and ambient lighting, The Wonderfall attracts both tourists and locals looking to unwind. Visit during off-peak hours for a more tranquil experience, and remember that no booking is requiredjust bring your camera to capture the stunning views.",
+          "links": null,
+          "rating": 4.7,
+          "userRatingCount": 406,
+          "tags": [
+            "tourist_attraction",
+            "wheelchair-friendly",
+            "tourist-spot",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJi4ozyMEi2jERfEjUDq6iNb8",
+          "name": "Bedok Jetty",
+          "types": [
+            "tourist_attraction",
+            "landmark",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "point_of_interest",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 1.5,
+          "low_carbon_score": 38.0,
+          "geo": {
+            "latitude": 1.3052867,
+            "longitude": 103.9422147
+          },
+          "geo_cluster_id": "east",
+          "address": "East Coast Park Service Road, Singapore 449876",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "00:00-23:59",
+            "tuesday": "00:00-23:59",
+            "wednesday": "00:00-23:59",
+            "thursday": "00:00-23:59",
+            "friday": "00:00-23:59",
+            "saturday": "00:00-23:59",
+            "sunday": "00:00-23:59"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Sizable jetty offering walking, bicycling & angling, including shallow & deep-water fishing.",
+          "links": null,
+          "rating": 4.6,
+          "userRatingCount": 1113,
+          "tags": [
+            "tourist_attraction",
+            "wheelchair-friendly",
+            "tourist-spot",
+            "highly-rated",
+            "heartland"
+          ]
+        },
+        {
+          "place_id": "ChIJu7ZXhhsW2jERIrsz6gV3oSE",
+          "name": "Arulmigu Velmurugan Gnanamuneeswarar Temple",
+          "types": [
+            "hindu_temple",
+            "tourist_attraction",
+            "place_of_worship",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "hindu_temple",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 0.8,
+          "low_carbon_score": 28.0,
+          "geo": {
+            "latitude": 1.3887452,
+            "longitude": 103.90819549999999
+          },
+          "geo_cluster_id": "northeast",
+          "address": "50 Rivervale Cres, Singapore 545029",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "07:00-12:00,06:30-21:30",
+            "tuesday": "07:00-12:00,06:30-21:30",
+            "wednesday": "07:00-12:00,06:30-21:30",
+            "thursday": "07:00-12:00,06:30-21:30",
+            "friday": "07:00-12:00,06:30-21:30",
+            "saturday": "07:00-12:00,06:30-21:30",
+            "sunday": "07:00-12:00,06:30-21:30"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Nestled in the heartlands of Sengkang, the Arulmigu Velmurugan Gnanamuneeswarar Temple is a serene Hindu temple located at 50 Rivervale Crescent. Easily accessible via a short bus ride from Sengkang MRT, this temple is a spiritual haven for devotees and visitors seeking tranquility. Known for its vibrant festivals and intricate architecture, it attracts both locals and tourists, especially during major Hindu celebrations. Visitors are advised to dress modestly and note that offerings can be made in cash, with no prior booking required for entry.",
+          "links": null,
+          "rating": 4.7,
+          "userRatingCount": 1213,
+          "tags": [
+            "hindu_temple",
+            "wheelchair-friendly",
+            "temple",
+            "tourist-spot",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJw62n3Vo92jERl8c1cg9hXzE",
+          "name": "Bedok Reservoir Park",
+          "types": [
+            "park",
+            "garden",
+            "tourist_attraction",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "park",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 0.0,
+          "low_carbon_score": 0.0,
+          "geo": {
+            "latitude": 1.3391412999999999,
+            "longitude": 103.922706
+          },
+          "geo_cluster_id": "east",
+          "address": "760 Bedok Reservoir Rd, Singapore 479245",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "07:00-19:00",
+            "tuesday": "07:00-19:00",
+            "wednesday": "07:00-19:00",
+            "thursday": "07:00-19:00",
+            "friday": "07:00-19:00",
+            "saturday": "07:00-19:00",
+            "sunday": "07:00-19:00"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Leafy park with a lake, popular for dragon boats, kayaking & fishing, with a track & playground.",
+          "links": null,
+          "rating": 4.5,
+          "userRatingCount": 3828,
+          "tags": [
+            "park",
+            "wheelchair-friendly",
+            "tourist-spot",
+            "highly-rated",
+            "heartland"
+          ]
+        },
+        {
+          "place_id": "ChIJ_ci8n68k2jERnoun2bqnXK0",
+          "name": "Singapore Navy Museum",
+          "types": [
+            "museum",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "museum",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 1.8,
+          "low_carbon_score": 42.0,
+          "geo": {
+            "latitude": 1.3165874,
+            "longitude": 104.0171467
+          },
+          "geo_cluster_id": "east",
+          "address": "112 Tanah Merah Coast Rd, Singapore 498794",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "12:00-17:00",
+            "tuesday": "Closed",
+            "wednesday": "12:00-17:00",
+            "thursday": "12:00-17:00",
+            "friday": "12:00-17:00",
+            "saturday": "10:00-15:00",
+            "sunday": "10:00-15:00"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Located near the Changi Naval Base, the Singapore Navy Museum at 112 Tanah Merah Coast Rd offers a fascinating glimpse into the maritime history of Singapore. While its a bit off the beaten path, the museum is accessible by a short taxi ride from Tanah Merah MRT. This museum is a hidden gem for military enthusiasts and families interested in naval history, featuring interactive exhibits and historical artifacts. Admission is free, but visitors should bring a photo ID for entry, and it's advisable to visit on weekdays to avoid crowds.",
+          "links": null,
+          "rating": 4.6,
+          "userRatingCount": 881,
+          "tags": [
+            "museum",
+            "wheelchair-friendly",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJvXm-YLw92jERvHHDBKUOYm4",
+          "name": "Changi T1 Viewing Mall L3",
+          "types": [
+            "tourist_attraction",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "tourist_attraction",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 1.5,
+          "low_carbon_score": 38.0,
+          "geo": {
+            "latitude": 1.3626382,
+            "longitude": 103.99029689999999
+          },
+          "geo_cluster_id": "east",
+          "address": "80 Airport Blvd., Singapore 819642",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "00:00-23:59",
+            "tuesday": "00:00-23:59",
+            "wednesday": "00:00-23:59",
+            "thursday": "00:00-23:59",
+            "friday": "00:00-23:59",
+            "saturday": "00:00-23:59",
+            "sunday": "00:00-23:59"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Located within Changi Airport Terminal 1, the Viewing Mall on Level 3 offers a panoramic view of the bustling airport runways, making it a perfect spot for aviation enthusiasts and families. Easily accessible via the Changi Airport MRT station, this attraction provides a serene escape from the usual airport hustle. The best time to visit is during the day when natural light enhances the view, and you can watch planes take off and land against the backdrop of Singapore's skyline. Admission is free, and no booking is required, making it a convenient stop for travelers with some time to spare before their flight.",
+          "links": null,
+          "rating": 4.6,
+          "userRatingCount": 182,
+          "tags": [
+            "tourist_attraction",
+            "wheelchair-friendly",
+            "tourist-spot",
+            "highly-rated",
+            "changi"
+          ]
+        },
+        {
+          "place_id": "ChIJ1QRrOEI92jERaacLIEmwAis",
+          "name": "Forest Adventure Pte Ltd",
+          "types": [
+            "tourist_attraction",
+            "adventure_sports_center",
+            "sports_complex",
+            "sports_activity_location",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "tourist_attraction",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 1.5,
+          "low_carbon_score": 38.0,
+          "geo": {
+            "latitude": 1.3421508,
+            "longitude": 103.931175
+          },
+          "geo_cluster_id": "east",
+          "address": "Singapore",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "09:00-14:00",
+            "tuesday": "09:30-18:00",
+            "wednesday": "09:30-18:00",
+            "thursday": "09:30-18:00",
+            "friday": "09:30-18:00",
+            "saturday": "09:30-18:30",
+            "sunday": "09:30-18:30"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Outdoor activity center featuring zip lines & obstacle courses above the treetops & over water.",
+          "links": null,
+          "rating": 4.5,
+          "userRatingCount": 792,
+          "tags": [
+            "tourist_attraction",
+            "wheelchair-friendly",
+            "tourist-spot",
+            "sports",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJCQHB6vc82jERq6iFty4Fzo4",
+          "name": "Changi Chapel & Museum",
+          "types": [
+            "museum",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "museum",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 1.8,
+          "low_carbon_score": 42.0,
+          "geo": {
+            "latitude": 1.362212,
+            "longitude": 103.974025
+          },
+          "geo_cluster_id": "east",
+          "address": "1000 Upper Changi Rd N, Singapore 507707",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "Closed",
+            "tuesday": "09:30-17:30",
+            "wednesday": "09:30-17:30",
+            "thursday": "09:30-17:30",
+            "friday": "09:30-17:30",
+            "saturday": "09:30-17:30",
+            "sunday": "09:30-17:30"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Exhibits, displays & art documenting the Japanese occupation during WWII, plus a cafe & bookshop.",
+          "links": null,
+          "rating": 4.4,
+          "userRatingCount": 587,
+          "tags": [
+            "museum",
+            "wheelchair-friendly",
+            "highly-rated",
+            "changi"
+          ]
+        },
+        {
+          "place_id": "ChIJby-HbsAi2jERcHb1yx-Ei0A",
+          "name": "Xtreme SkatePark",
+          "types": [
+            "skateboard_park",
+            "tourist_attraction",
+            "sports_complex",
+            "sports_activity_location",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "skateboard_park",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 0.1,
+          "low_carbon_score": 5.0,
+          "geo": {
+            "latitude": 1.3082159,
+            "longitude": 103.93876999999999
+          },
+          "geo_cluster_id": "east",
+          "address": "E Coast Park Service Rd, Singapore",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "07:30-22:00",
+            "tuesday": "07:30-22:00",
+            "wednesday": "07:30-22:00",
+            "thursday": "07:30-22:00",
+            "friday": "07:30-22:00",
+            "saturday": "07:30-22:00",
+            "sunday": "00:00-23:59"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Nestled within the vibrant East Coast Park, Xtreme SkatePark is Singapore's premier destination for skateboarding enthusiasts. Easily accessible via a short bus ride from Bedok MRT, this expansive park features a variety of ramps, bowls, and street obstacles catering to skaters of all skill levels. Known for its lively atmosphere, it attracts a diverse crowd, from local teens perfecting their tricks to international visitors seeking a unique skate experience. The park is free to enter, and early mornings or late afternoons are ideal for avoiding the midday heat and crowds. Remember to bring your own gear, as rentals are not available on-site.",
+          "links": null,
+          "rating": 4.6,
+          "userRatingCount": 427,
+          "tags": [
+            "skateboard_park",
+            "wheelchair-friendly",
+            "tourist-spot",
+            "sports",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJQ-JB8ac92jERM18jZukcWnw",
+          "name": "Tampines Eco Green",
+          "types": [
+            "park",
+            "tourist_attraction",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "park",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 0.0,
+          "low_carbon_score": 0.0,
+          "geo": {
+            "latitude": 1.3639478,
+            "longitude": 103.9482922
+          },
+          "geo_cluster_id": "east",
+          "address": "Tampines Ave 9, Singapore 520491",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "07:30-19:30",
+            "tuesday": "07:30-19:30",
+            "wednesday": "07:30-19:30",
+            "thursday": "07:30-19:30",
+            "friday": "07:30-19:30",
+            "saturday": "07:30-19:30",
+            "sunday": "07:30-19:30"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Grassland, forest & wetlands area with hiking paths, known for parakeets, kingfishers & butterflies.",
+          "links": null,
+          "rating": 4.4,
+          "userRatingCount": 849,
+          "tags": [
+            "park",
+            "wheelchair-friendly",
+            "tourist-spot",
+            "highly-rated",
+            "heartland"
+          ]
+        },
+        {
+          "place_id": "ChIJszCOd5Yi2jERVZ6sWWxiDCg",
+          "name": "SWP (Singapore Wake Park)",
+          "types": [
+            "water_park",
+            "tourist_attraction",
+            "amusement_park",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "water_park",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 6.0,
+          "low_carbon_score": 68.0,
+          "geo": {
+            "latitude": 1.3055949999999998,
+            "longitude": 103.931679
+          },
+          "geo_cluster_id": "east",
+          "address": "1206A ECP, Singapore 449891",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "10:00-20:00",
+            "tuesday": "10:00-20:00",
+            "wednesday": "10:00-20:00",
+            "thursday": "10:00-20:00",
+            "friday": "10:00-20:00",
+            "saturday": "10:00-20:00",
+            "sunday": "10:00-20:00"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Nestled along the scenic East Coast Park, Singapore Wake Park (SWP) offers an exhilarating escape for water sports enthusiasts. Easily accessible via a short bus ride from Bedok MRT, this unique cable-ski park attracts both beginners and seasoned wakeboarders looking to ride the waves against a backdrop of lush greenery. Weekdays are ideal for a quieter experience, while weekends draw a lively crowd of thrill-seekers and families. To make the most of your visit, book your session online in advance and note that cashless payments are preferred.",
+          "links": null,
+          "rating": 4.6,
+          "userRatingCount": 632,
+          "tags": [
+            "water_park",
+            "wheelchair-friendly",
+            "water-park",
+            "tourist-spot",
+            "theme-park",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJq6qq6gQ-2jER9Qvjlelpwho",
+          "name": "Coney Island",
+          "types": [
+            "park",
+            "tourist_attraction",
+            "hiking_area",
+            "sports_activity_location",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "park",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 0.0,
+          "low_carbon_score": 0.0,
+          "geo": {
+            "latitude": 1.4092951,
+            "longitude": 103.9216496
+          },
+          "geo_cluster_id": "northeast",
+          "address": "Punggol Promenade Nature Walk, Singapore 829325",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "07:00-19:00",
+            "tuesday": "07:00-19:00",
+            "wednesday": "07:00-19:00",
+            "thursday": "07:00-19:00",
+            "friday": "07:00-19:00",
+            "saturday": "07:00-19:00",
+            "sunday": "07:00-19:00"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [],
+          "description": "Rustic park known for its diverse flora, wide variety of bird species & lush coastal forests.",
+          "links": null,
+          "rating": 4.4,
+          "userRatingCount": 917,
+          "tags": [
+            "park",
+            "tourist-spot",
+            "hiking",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJxdObjy092jERsNdxiArVbeQ",
+          "name": "That Aquarium",
+          "types": [
+            "aquarium",
+            "pet_store",
+            "store",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "pet_store",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 1.8,
+          "low_carbon_score": 42.0,
+          "geo": {
+            "latitude": 1.3463015,
+            "longitude": 103.9396416
+          },
+          "geo_cluster_id": "east",
+          "address": "929 Tampines Street 91, #01-447 Block 929, Singapore 520929",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "12:00-22:00",
+            "tuesday": "12:00-22:00",
+            "wednesday": "12:00-22:00",
+            "thursday": "12:00-22:00",
+            "friday": "12:00-22:00",
+            "saturday": "12:00-22:00",
+            "sunday": "12:00-22:00"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Nestled in the heart of Tampines, That Aquarium is a charming pet store located at Block 929, just a short bus ride from Tampines MRT. Known for its extensive selection of aquatic life and supplies, it attracts both local hobbyists and families looking to add a splash of color to their home aquariums. The store is particularly lively on weekends, making weekday visits ideal for a more relaxed shopping experience. Be sure to bring cash, as some smaller purchases may not be eligible for card payments.",
+          "links": null,
+          "rating": 4.4,
+          "userRatingCount": 287,
+          "tags": [
+            "pet_store",
+            "wheelchair-friendly",
+            "aquarium",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJA5LATO4Z2jER111V-v6abAI",
+          "name": "Marina Bay Sands Singapore",
+          "types": [
+            "hotel",
+            "tourist_attraction",
+            "lodging",
+            "restaurant",
+            "food",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "hotel",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 12.0,
+          "low_carbon_score": 80.0,
+          "geo": {
+            "latitude": 1.2837574999999999,
+            "longitude": 103.8591065
+          },
+          "geo_cluster_id": "downtown",
+          "address": "10 Bayfront Ave, Singapore 018956",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "00:00-23:59",
+            "tuesday": "00:00-23:59",
+            "wednesday": "00:00-23:59",
+            "thursday": "00:00-23:59",
+            "friday": "00:00-23:59",
+            "saturday": "00:00-23:59",
+            "sunday": "00:00-23:59"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Luxe hotel offering multiple restaurants & bars, plus bay views, a spa & a rooftop pool.",
+          "links": null,
+          "rating": 4.7,
+          "userRatingCount": 60356,
+          "tags": [
+            "hotel",
+            "wheelchair-friendly",
+            "tourist-spot",
+            "highly-rated",
+            "marina-bay"
+          ]
+        },
+        {
+          "place_id": "ChIJMxZ-kwQZ2jERdsqftXeWCWI",
+          "name": "Gardens by the Bay",
+          "types": [
+            "garden",
+            "tourist_attraction",
+            "botanical_garden",
+            "park",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "garden",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 0.2,
+          "low_carbon_score": 10.0,
+          "geo": {
+            "latitude": 1.2815683,
+            "longitude": 103.8636132
+          },
+          "geo_cluster_id": "downtown",
+          "address": "18 Marina Gardens Dr, Singapore 018953",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "05:00-02:00",
+            "tuesday": "05:00-02:00",
+            "wednesday": "05:00-02:00",
+            "thursday": "05:00-02:00",
+            "friday": "05:00-02:00",
+            "saturday": "05:00-02:00",
+            "sunday": "05:00-02:00"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "A network of modern greenhouses & waterfront parks containing super trees lined with solar cells.",
+          "links": null,
+          "rating": 4.7,
+          "userRatingCount": 152057,
+          "tags": [
+            "garden",
+            "wheelchair-friendly",
+            "tourist-spot",
+            "gardens",
+            "park",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJBTYg1g4Z2jERp_MBbu5erWY",
+          "name": "Merlion Park",
+          "types": [
+            "park",
+            "tourist_attraction",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "park",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 0.0,
+          "low_carbon_score": 0.0,
+          "geo": {
+            "latitude": 1.2867449,
+            "longitude": 103.85438719999999
+          },
+          "geo_cluster_id": "downtown",
+          "address": "1 Fullerton Rd, Singapore 049213",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "00:00-23:59",
+            "tuesday": "00:00-23:59",
+            "wednesday": "00:00-23:59",
+            "thursday": "00:00-23:59",
+            "friday": "00:00-23:59",
+            "saturday": "00:00-23:59",
+            "sunday": "00:00-23:59"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "The 70-ton merlion statue is one of the city's most iconic sights & is located in this park.",
+          "links": null,
+          "rating": 4.6,
+          "userRatingCount": 72842,
+          "tags": [
+            "park",
+            "wheelchair-friendly",
+            "tourist-spot",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJ29omWQgZ2jEROEz2yZFzQp8",
+          "name": "Merlion",
+          "types": [
+            "tourist_attraction",
+            "park",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "park",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 0.0,
+          "low_carbon_score": 0.0,
+          "geo": {
+            "latitude": 1.2867891999999999,
+            "longitude": 103.85450139999999
+          },
+          "geo_cluster_id": "downtown",
+          "address": "Singapore",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "00:00-23:59",
+            "tuesday": "00:00-23:59",
+            "wednesday": "00:00-23:59",
+            "thursday": "00:00-23:59",
+            "friday": "00:00-23:59",
+            "saturday": "00:00-23:59",
+            "sunday": "00:00-23:59"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Iconic, 8.5m-tall statue with the body of a fish & head of a lion, shooting water from its mouth.",
+          "links": null,
+          "rating": 4.7,
+          "userRatingCount": 49407,
+          "tags": [
+            "park",
+            "wheelchair-friendly",
+            "tourist-spot",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJ7xlFdKwT2jERXrseJIzS6tI",
+          "name": "Citrus By The Pool",
+          "types": [
+            "dessert_restaurant",
+            "cafe",
+            "food_store",
+            "restaurant",
+            "food",
+            "store",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "restaurant",
+          "cost_sgd": 30,
+          "price_level": 2,
+          "onsite_co2_kg": 2.4,
+          "low_carbon_score": 48.0,
+          "geo": {
+            "latitude": 1.4344838,
+            "longitude": 103.77948479999999
+          },
+          "geo_cluster_id": "north",
+          "address": "3 Woodlands Street 13, Woodlands Swimming Complex, Singapore 738600",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "11:00-05:00",
+            "tuesday": "11:00-05:00",
+            "wednesday": "11:00-05:00",
+            "thursday": "11:00-05:00",
+            "friday": "11:00-05:00",
+            "saturday": "11:00-05:00",
+            "sunday": "11:00-05:00"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Casual restaurant with a trendy vibe offering an eclectic menu of international comfort food.",
+          "links": null,
+          "rating": 4.9,
+          "userRatingCount": 24140,
+          "tags": [
+            "restaurant",
+            "wheelchair-friendly",
+            "cafe",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJde_Sl0kS2jERbyHYOmhy2u0",
+          "name": "Cheval Cafe Bar Bistro",
+          "types": [
+            "cafe",
+            "bar",
+            "restaurant",
+            "food",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "restaurant",
+          "cost_sgd": 30,
+          "price_level": 2,
+          "onsite_co2_kg": 2.4,
+          "low_carbon_score": 48.0,
+          "geo": {
+            "latitude": 1.4281829,
+            "longitude": 103.7674324
+          },
+          "geo_cluster_id": "north",
+          "address": "1 Equestrian Walk, Singapore Turf Club Riding Centre, Singapore 737863",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "11:00-23:00",
+            "tuesday": "11:00-23:00",
+            "wednesday": "11:00-23:00",
+            "thursday": "11:00-23:00",
+            "friday": "11:00-00:00",
+            "saturday": "11:00-23:00",
+            "sunday": "11:00-23:00"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Nestled within the serene Singapore Turf Club Riding Centre, Cheval Cafe Bar Bistro offers a unique dining experience away from the city's hustle and bustle. Accessible via a short taxi ride from Kranji MRT, this charming spot attracts equestrian enthusiasts and families looking for a relaxed meal with views of lush greenery and horse paddocks. Known for its laid-back atmosphere, it's an ideal venue for brunch or a leisurely dinner, especially on weekends when the setting sun casts a golden hue over the grounds. Reservations are recommended, and while credit card payments are accepted, bringing cash is advisable for smaller purchases.",
+          "links": null,
+          "rating": 4.3,
+          "userRatingCount": 806,
+          "tags": [
+            "restaurant",
+            "wheelchair-friendly",
+            "cafe",
+            "drinks"
+          ]
+        },
+        {
+          "place_id": "ChIJxS4H7hwT2jERBRdisyWBfUM",
+          "name": "elemen ",
+          "types": [
+            "vegetarian_restaurant",
+            "restaurant",
+            "food",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "vegetarian_restaurant",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 1.9,
+          "low_carbon_score": 43.0,
+          "geo": {
+            "latitude": 1.4282523,
+            "longitude": 103.7993501
+          },
+          "geo_cluster_id": "north",
+          "address": "1 Woodlands Height, #01-02 Koufu Headquarters, Singapore 737859",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "11:00-15:00,17:30-21:00",
+            "tuesday": "11:00-15:00,17:30-21:00",
+            "wednesday": "11:00-15:00,17:30-21:00",
+            "thursday": "11:00-15:00,17:30-21:00",
+            "friday": "11:00-15:00,17:30-21:30",
+            "saturday": "11:00-15:00,17:30-21:30",
+            "sunday": "11:00-15:00,17:30-21:30"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Nestled in the heartlands of Woodlands, elemen  is a serene vegetarian restaurant located at the Koufu Headquarters, just a short bus ride from Woodlands MRT. Known for its innovative plant-based dishes that blend Asian and Western flavors, this spot attracts both local families and health-conscious diners seeking a peaceful dining experience. It's particularly popular during weekends, so reservations are recommended. The restaurant accepts major credit cards, making it convenient for a hassle-free meal.",
+          "links": null,
+          "rating": 4.4,
+          "userRatingCount": 311,
+          "tags": [
+            "vegetarian_restaurant",
+            "wheelchair-friendly",
+            "vegetarian",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJEzhoAw0V2jERO8PSynsw4_w",
+          "name": "Anna's",
+          "types": [
+            "cafe",
+            "restaurant",
+            "food",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "cafe",
+          "cost_sgd": 30,
+          "price_level": 2,
+          "onsite_co2_kg": 1.0,
+          "low_carbon_score": 32.0,
+          "geo": {
+            "latitude": 1.4032692,
+            "longitude": 103.9132265
+          },
+          "geo_cluster_id": "northeast",
+          "address": "681 Punggol Dr., #01-04 Oasis Terraces, Singapore 820681",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "08:30-21:30",
+            "tuesday": "08:30-21:30",
+            "wednesday": "08:30-21:30",
+            "thursday": "08:30-21:30",
+            "friday": "08:30-22:00",
+            "saturday": "08:30-22:00",
+            "sunday": "08:30-21:30"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Nestled within Oasis Terraces at 681 Punggol Drive, Anna's is a charming cafe just a short walk from Oasis LRT station, making it easily accessible for both locals and visitors exploring the Punggol area. Known for its cozy ambiance and artisanal menu, Anna's attracts a diverse crowd, from families enjoying a leisurely brunch to students and remote workers seeking a quiet spot during weekdays. The cafe's inviting atmosphere and locally-inspired dishes make it a standout in the heartlands. For a seamless experience, note that Anna's accepts cashless payments, and it's wise to visit during off-peak hours to avoid the weekend rush.",
+          "links": null,
+          "rating": 4.4,
+          "userRatingCount": 1415,
+          "tags": [
+            "cafe",
+            "wheelchair-friendly",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJb2JGY9Q92jERa0tLgJ_wy6k",
+          "name": "Daruma Tavern Punggol",
+          "types": [
+            "restaurant",
+            "food",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "restaurant",
+          "cost_sgd": 30,
+          "price_level": 2,
+          "onsite_co2_kg": 2.4,
+          "low_carbon_score": 48.0,
+          "geo": {
+            "latitude": 1.3969192,
+            "longitude": 103.9212159
+          },
+          "geo_cluster_id": "northeast",
+          "address": "654A Punggol Dr., #01-10, Singapore 821654",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "11:00-00:00",
+            "tuesday": "11:00-00:00",
+            "wednesday": "11:00-00:00",
+            "thursday": "11:00-00:00",
+            "friday": "11:00-00:00",
+            "saturday": "09:00-00:00",
+            "sunday": "09:00-22:30"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Nestled in the heart of Punggol, Daruma Tavern is conveniently located near the Punggol MRT station, making it easily accessible for both locals and visitors. This cozy restaurant is known for its warm, inviting atmosphere and is a favorite among families and residents seeking a relaxed dining experience away from the bustling city center. The tavern is particularly popular during weekends, offering a delightful menu that caters to a variety of tastes. Its advisable to make reservations in advance, especially for dinner, and note that they accept both cash and major credit cards for payment.",
+          "links": null,
+          "rating": 4.3,
+          "userRatingCount": 341,
+          "tags": [
+            "restaurant",
+            "wheelchair-friendly"
+          ]
+        },
+        {
+          "place_id": "ChIJf9xZH1oX2jERVPOo2eFeVYg",
+          "name": "Big Prawn Noodle",
+          "types": [
+            "restaurant",
+            "food",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "restaurant",
+          "cost_sgd": 15,
+          "price_level": 1,
+          "onsite_co2_kg": 2.4,
+          "low_carbon_score": 48.0,
+          "geo": {
+            "latitude": 1.3858487,
+            "longitude": 103.8975509
+          },
+          "geo_cluster_id": "northeast",
+          "address": "205D Compassvale Ln, Singapore 544205",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "07:45-18:00",
+            "tuesday": "07:45-18:00",
+            "wednesday": "07:45-18:00",
+            "thursday": "Closed",
+            "friday": "07:45-18:00",
+            "saturday": "07:45-18:00",
+            "sunday": "07:45-18:00"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Nestled in the heartlands of Sengkang, Big Prawn Noodle is a beloved local eatery located at 205D Compassvale Lane, just a short walk from Sengkang MRT. Known for its rich, flavorful broth and succulent prawns, this restaurant attracts a steady stream of families and local food enthusiasts, especially during lunchtime and weekends. The casual, family-friendly atmosphere makes it a perfect spot for a relaxed meal without the hustle and bustle of tourist areas. While the prices are wallet-friendly, it's advisable to bring cash as some smaller eateries may not accept cards.",
+          "links": null,
+          "rating": 4.5,
+          "userRatingCount": 818,
+          "tags": [
+            "restaurant",
+            "wheelchair-friendly",
+            "budget-friendly",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJ04fGxckj2jERlkiNn_xBbbM",
+          "name": "Fico",
+          "types": [
+            "italian_restaurant",
+            "restaurant",
+            "food",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "italian_restaurant",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 2.6,
+          "low_carbon_score": 51.0,
+          "geo": {
+            "latitude": 1.3104434999999999,
+            "longitude": 103.94609229999999
+          },
+          "geo_cluster_id": "east",
+          "address": "1300 East Coast Parkway, East Coast Park Area F, Singapore 468964",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "17:30-22:30",
+            "tuesday": "17:30-22:30",
+            "wednesday": "17:30-22:30",
+            "thursday": "11:30-15:00,17:30-22:30",
+            "friday": "11:30-22:30",
+            "saturday": "11:30-22:30",
+            "sunday": "11:30-22:30"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Nestled within the scenic East Coast Park, Fico offers a delightful Italian dining experience just a short drive from the bustling Katong district. Known for its authentic Italian cuisine and charming seaside ambiance, this restaurant attracts both locals and tourists seeking a relaxing meal by the beach, especially during sunset hours. While weekends can get busy, reservations are recommended to secure a spot. Fico accepts major credit cards, making it convenient for both spontaneous visits and planned outings.",
+          "links": null,
+          "rating": 4.5,
+          "userRatingCount": 2724,
+          "tags": [
+            "italian_restaurant",
+            "wheelchair-friendly",
+            "italian",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJ_RUrgEUZ2jERbiVJY1DNvBM",
+          "name": "La Bottega Enoteca",
+          "types": [
+            "italian_restaurant",
+            "restaurant",
+            "food",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "italian_restaurant",
+          "cost_sgd": 60,
+          "price_level": 3,
+          "onsite_co2_kg": 2.6,
+          "low_carbon_score": 51.0,
+          "geo": {
+            "latitude": 1.3087539,
+            "longitude": 103.9027938
+          },
+          "geo_cluster_id": "east",
+          "address": "346 Joo Chiat Rd, Singapore 427596",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "17:30-22:30",
+            "tuesday": "17:30-22:30",
+            "wednesday": "17:30-22:30",
+            "thursday": "17:30-22:30",
+            "friday": "11:30-15:00,17:30-23:00",
+            "saturday": "11:30-15:00,17:30-23:00",
+            "sunday": "11:30-15:00,17:30-22:30"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [],
+          "description": "Nestled in the vibrant Joo Chiat neighborhood, La Bottega Enoteca is a charming Italian restaurant that offers an authentic taste of Italy in Singapore's east. Just a short bus ride from the Paya Lebar MRT station, this cozy spot is known for its rustic ambiance and attracts both locals and expatriates seeking a genuine Italian dining experience. The restaurant is particularly popular during dinner hours, making reservations advisable, especially on weekends. While La Bottega Enoteca accepts major credit cards, it's wise to book ahead to secure a table and enjoy a leisurely meal in this delightful enclave.",
+          "links": null,
+          "rating": 4.7,
+          "userRatingCount": 2394,
+          "tags": [
+            "italian_restaurant",
+            "italian",
+            "premium",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJ1WlZGHwZ2jERfe0_ZCZKyEA",
+          "name": "The Brewing Ground",
+          "types": [
+            "restaurant",
+            "food",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "restaurant",
+          "cost_sgd": 30,
+          "price_level": 2,
+          "onsite_co2_kg": 2.4,
+          "low_carbon_score": 48.0,
+          "geo": {
+            "latitude": 1.3148971,
+            "longitude": 103.9110412
+          },
+          "geo_cluster_id": "east",
+          "address": "406 Joo Chiat Pl, #01-24 The Yards, Singapore 428084",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "08:30-17:00",
+            "tuesday": "08:30-17:00",
+            "wednesday": "08:30-17:00",
+            "thursday": "08:30-17:00",
+            "friday": "08:30-17:00",
+            "saturday": "08:30-17:00",
+            "sunday": "08:30-17:00"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Light-filled coffeehouse with a patio & a playground serving upmarket global breakfast & lunch fare.",
+          "links": null,
+          "rating": 4.5,
+          "userRatingCount": 930,
+          "tags": [
+            "restaurant",
+            "wheelchair-friendly",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJRR8bWM8Z2jER8ml0qU8UFeE",
+          "name": "MTR Singapore",
+          "types": [
+            "vegetarian_restaurant",
+            "brunch_restaurant",
+            "meal_takeaway",
+            "breakfast_restaurant",
+            "indian_restaurant",
+            "restaurant",
+            "food",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "vegetarian_restaurant",
+          "cost_sgd": 30,
+          "price_level": 2,
+          "onsite_co2_kg": 1.9,
+          "low_carbon_score": 43.0,
+          "geo": {
+            "latitude": 1.3130167,
+            "longitude": 103.8565232
+          },
+          "geo_cluster_id": "downtown",
+          "address": "438 Serangoon Rd, Singapore 218133",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "Closed",
+            "tuesday": "08:30-15:00,17:30-22:00",
+            "wednesday": "08:30-15:00,17:30-22:00",
+            "thursday": "08:30-15:00,17:30-22:00",
+            "friday": "08:30-15:00,17:30-22:00",
+            "saturday": "08:30-15:30,17:30-22:00",
+            "sunday": "08:30-15:30,17:30-22:00"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Nestled in the vibrant Little India district, MTR Singapore is just a short walk from Farrer Park MRT, making it easily accessible for both locals and tourists. Known for its authentic South Indian vegetarian cuisine, this restaurant attracts a diverse crowd, from families to food enthusiasts seeking traditional flavors. It's particularly popular during lunch and dinner hours, so visiting during off-peak times might offer a more relaxed experience. While reservations aren't necessary, it's good to note that MTR Singapore accepts both cash and card payments, ensuring a hassle-free dining experience.",
+          "links": null,
+          "rating": 4.5,
+          "userRatingCount": 4499,
+          "tags": [
+            "vegetarian_restaurant",
+            "wheelchair-friendly",
+            "vegetarian",
+            "brunch",
+            "breakfast",
+            "indian",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJ2QdCQegb2jERpeuye8JoFDw",
+          "name": "Keppel Club",
+          "types": [
+            "golf_course",
+            "tourist_attraction",
+            "athletic_field",
+            "sports_club",
+            "sports_activity_location",
+            "restaurant",
+            "food",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "point_of_interest",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 4.0,
+          "low_carbon_score": 60.0,
+          "geo": {
+            "latitude": 1.3416815,
+            "longitude": 103.8110618
+          },
+          "geo_cluster_id": "central",
+          "address": "239 Sime Rd, Singapore 289685",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "Closed",
+            "tuesday": "07:00-19:30",
+            "wednesday": "07:00-19:30",
+            "thursday": "07:00-19:30",
+            "friday": "07:00-19:30",
+            "saturday": "07:00-19:30",
+            "sunday": "07:00-19:30"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Nestled in the lush greenery of Sime Road, Keppel Club offers a serene escape for golf enthusiasts just a short drive from the bustling city center. While not directly accessible by MRT, it is conveniently located near the MacRitchie Reservoir, making it a peaceful retreat for both locals and expatriates seeking a leisurely day on the greens. Known for its rich history and challenging course, the club attracts a mix of seasoned golfers and those looking to unwind in a tranquil setting. To ensure a smooth visit, it's advisable to book tee times in advance, and note that the club accepts both cash and card payments for added convenience.",
+          "links": null,
+          "rating": 4.4,
+          "userRatingCount": 1912,
+          "tags": [
+            "golf_course",
+            "wheelchair-friendly",
+            "tourist-spot",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJ5Y6l4Q0Z2jERYL0KDIjT6v0",
+          "name": "Lau Pa Sat",
+          "types": [
+            "tourist_attraction",
+            "restaurant",
+            "food",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "restaurant",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 2.4,
+          "low_carbon_score": 48.0,
+          "geo": {
+            "latitude": 1.2805121,
+            "longitude": 103.8503809
+          },
+          "geo_cluster_id": "downtown",
+          "address": "18 Raffles Quay, Singapore 048582",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "00:00-23:59",
+            "tuesday": "00:00-23:59",
+            "wednesday": "00:00-23:59",
+            "thursday": "00:00-23:59",
+            "friday": "00:00-23:59",
+            "saturday": "00:00-23:59",
+            "sunday": "00:00-23:59"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Rebuilt Victorian covered hawker centre in CBD with local delicacies & international food stalls.",
+          "links": null,
+          "rating": 4.4,
+          "userRatingCount": 35458,
+          "tags": [
+            "restaurant",
+            "wheelchair-friendly",
+            "tourist-spot",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJseQsTQ0Z2jERqpBTWF0Zf84",
+          "name": "Maxwell Food Centre",
+          "types": [
+            "tourist_attraction",
+            "restaurant",
+            "food",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "restaurant",
+          "cost_sgd": 15,
+          "price_level": 1,
+          "onsite_co2_kg": 2.4,
+          "low_carbon_score": 48.0,
+          "geo": {
+            "latitude": 1.2803361,
+            "longitude": 103.844767
+          },
+          "geo_cluster_id": "downtown",
+          "address": "1 Kadayanallur St, Singapore 069184",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "08:00-22:00",
+            "tuesday": "08:00-22:00",
+            "wednesday": "08:00-22:00",
+            "thursday": "08:00-22:00",
+            "friday": "08:00-22:00",
+            "saturday": "08:00-22:00",
+            "sunday": "08:00-22:00"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Chinatown hawker center with stands selling street food including famous chicken rice & dim sum.",
+          "links": null,
+          "rating": 4.4,
+          "userRatingCount": 21720,
+          "tags": [
+            "restaurant",
+            "wheelchair-friendly",
+            "tourist-spot",
+            "budget-friendly",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJjYlQqlMQ2jERNTV5U98WYMY",
+          "name": "iO Italian Osteria - HillV2 (Singapore)",
+          "types": [
+            "italian_restaurant",
+            "restaurant",
+            "food",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "italian_restaurant",
+          "cost_sgd": 30,
+          "price_level": 2,
+          "onsite_co2_kg": 2.6,
+          "low_carbon_score": 51.0,
+          "geo": {
+            "latitude": 1.3629771,
+            "longitude": 103.7645031
+          },
+          "geo_cluster_id": "west",
+          "address": "4 Hillview Rise, #02 - 01, Singapore 667979",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "11:30-22:00",
+            "tuesday": "11:30-22:00",
+            "wednesday": "11:30-22:00",
+            "thursday": "11:30-22:00",
+            "friday": "11:30-22:00",
+            "saturday": "10:00-22:00",
+            "sunday": "10:00-22:00"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Hip destination offering homestyle Italian cooking & wood-fired pizzas in stylish, modern surrounds.",
+          "links": null,
+          "rating": 4.5,
+          "userRatingCount": 4613,
+          "tags": [
+            "italian_restaurant",
+            "wheelchair-friendly",
+            "italian",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJRfjvYMkP2jERIzYiCJo-PYo",
+          "name": "Eden | Chinese Garden | Halal-Certified",
+          "types": [
+            "restaurant",
+            "coffee_shop",
+            "brunch_restaurant",
+            "asian_restaurant",
+            "cafe",
+            "food_store",
+            "food",
+            "store",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "restaurant",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 2.4,
+          "low_carbon_score": 48.0,
+          "geo": {
+            "latitude": 1.3398183000000001,
+            "longitude": 103.73076979999999
+          },
+          "geo_cluster_id": "west",
+          "address": "70B Yuan Ching Rd, #01-04 Beside Cloud Pagoda, Singapore 619629",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "09:00-21:00",
+            "tuesday": "09:00-21:00",
+            "wednesday": "09:00-21:00",
+            "thursday": "09:00-21:00",
+            "friday": "09:00-22:00",
+            "saturday": "09:00-22:00",
+            "sunday": "09:00-22:00"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Nestled beside the picturesque Cloud Pagoda in the serene Chinese Garden, Eden offers a tranquil dining experience away from the bustling city center. Easily accessible via Lakeside MRT, this halal-certified restaurant is a hidden gem for families and nature lovers seeking a peaceful meal amidst lush greenery. Known for its diverse menu and warm ambiance, Eden is particularly popular during weekends when visitors explore the nearby gardens. To ensure a smooth visit, consider making a reservation, especially during peak dining hours, and note that both cash and major credit cards are accepted.",
+          "links": null,
+          "rating": 4.6,
+          "userRatingCount": 2516,
+          "tags": [
+            "restaurant",
+            "wheelchair-friendly",
+            "coffee",
+            "brunch",
+            "cafe",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJYyF0fNAZ2jERR4kjryo0H3Q",
+          "name": "Laifaba Authentic Wood-Fired Roast & Noodles",
+          "types": [
+            "restaurant",
+            "food",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "restaurant",
+          "cost_sgd": 30,
+          "price_level": 2,
+          "onsite_co2_kg": 2.4,
+          "low_carbon_score": 48.0,
+          "geo": {
+            "latitude": 1.3383983,
+            "longitude": 103.75594319999999
+          },
+          "geo_cluster_id": "west",
+          "address": "Laifaba, 02-02 Bukit Batok Cres, Prestige Centre, 71, Singapore 658071",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "Closed",
+            "tuesday": "11:30-14:30,06:00-21:00",
+            "wednesday": "11:30-14:30,06:00-21:00",
+            "thursday": "11:30-14:30,06:00-21:00",
+            "friday": "11:30-14:30,06:00-21:00",
+            "saturday": "11:30-15:00,17:30-21:00",
+            "sunday": "11:30-15:00,17:30-21:00"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Nestled in the heartlands of Bukit Batok, Laifaba Authentic Wood-Fired Roast & Noodles is a hidden gem for those seeking traditional flavors. Just a short bus ride from Bukit Batok MRT, this cozy eatery is renowned for its succulent wood-fired roast meats and springy noodles, attracting local families and food enthusiasts alike. The restaurant is busiest during lunch hours, so visiting in the late afternoon might offer a more relaxed experience. While the prices are wallet-friendly, it's advisable to bring cash as payment options are limited.",
+          "links": null,
+          "rating": 4.7,
+          "userRatingCount": 3559,
+          "tags": [
+            "restaurant",
+            "wheelchair-friendly",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJw51YdBIZ2jERoa5GzNLFYvk",
+          "name": "JUMBO Seafood - The Riverwalk",
+          "types": [
+            "seafood_restaurant",
+            "restaurant",
+            "food",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "seafood_restaurant",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 2.6,
+          "low_carbon_score": 51.0,
+          "geo": {
+            "latitude": 1.2893135,
+            "longitude": 103.84829479999999
+          },
+          "geo_cluster_id": "downtown",
+          "address": "20 Upper Circular Rd, #B1-48 The Riverwalk, Singapore 058416",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "11:30-23:00",
+            "tuesday": "11:30-23:00",
+            "wednesday": "11:30-23:00",
+            "thursday": "11:30-23:00",
+            "friday": "11:30-23:00",
+            "saturday": "11:30-23:00",
+            "sunday": "11:30-23:00"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Nestled along the scenic Singapore River, JUMBO Seafood at The Riverwalk is just a short walk from Clarke Quay MRT, making it easily accessible for both locals and tourists. Known for its award-winning chili crab, this bustling seafood restaurant attracts a diverse crowd, from business professionals during weekday lunches to families and tourists on weekends. To ensure a seamless dining experience, it's advisable to make reservations, especially during peak hours. While the prices reflect its prime location and popularity, the quality of the seafood and the vibrant riverside atmosphere make it a worthwhile visit. Payment is convenient with most major credit cards accepted.",
+          "links": null,
+          "rating": 4.7,
+          "userRatingCount": 3700,
+          "tags": [
+            "seafood_restaurant",
+            "wheelchair-friendly",
+            "seafood",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJ5Y6l4Q0Z2jERYL0KDIjT6v0",
+          "name": "Lau Pa Sat",
+          "types": [
+            "tourist_attraction",
+            "restaurant",
+            "food",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "restaurant",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 2.4,
+          "low_carbon_score": 48.0,
+          "geo": {
+            "latitude": 1.2805121,
+            "longitude": 103.8503809
+          },
+          "geo_cluster_id": "downtown",
+          "address": "18 Raffles Quay, Singapore 048582",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "00:00-23:59",
+            "tuesday": "00:00-23:59",
+            "wednesday": "00:00-23:59",
+            "thursday": "00:00-23:59",
+            "friday": "00:00-23:59",
+            "saturday": "00:00-23:59",
+            "sunday": "00:00-23:59"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Rebuilt Victorian covered hawker centre in CBD with local delicacies & international food stalls.",
+          "links": null,
+          "rating": 4.4,
+          "userRatingCount": 35458,
+          "tags": [
+            "restaurant",
+            "wheelchair-friendly",
+            "tourist-spot",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJ2SMYHbIT2jERVptk4MxCg00",
+          "name": "Al-Ameen Eating Corner",
+          "types": [
+            "coffee_shop",
+            "breakfast_restaurant",
+            "cafe",
+            "food_store",
+            "restaurant",
+            "food",
+            "point_of_interest",
+            "store",
+            "establishment"
+          ],
+          "primaryType": "coffee_shop",
+          "cost_sgd": 15,
+          "price_level": 1,
+          "onsite_co2_kg": 1.2,
+          "low_carbon_score": 35.0,
+          "geo": {
+            "latitude": 1.4391858,
+            "longitude": 103.7834261
+          },
+          "geo_cluster_id": "north",
+          "address": "35 Marsiling Industrial Estate Road 3 #01-11 Central Industrial Estate, Singapore 739257",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "06:00-02:00",
+            "tuesday": "06:00-02:00",
+            "wednesday": "06:00-02:00",
+            "thursday": "06:00-02:00",
+            "friday": "06:00-02:00",
+            "saturday": "06:00-02:00",
+            "sunday": "06:00-02:00"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Bright, casual pit stop in a mall with a huge picture menu of Indian eats with halal ingredients.",
+          "links": null,
+          "rating": 4.2,
+          "userRatingCount": 4258,
+          "tags": [
+            "coffee_shop",
+            "wheelchair-friendly",
+            "coffee",
+            "breakfast",
+            "cafe",
+            "budget-friendly"
+          ]
+        },
+        {
+          "place_id": "ChIJWX6hZwAT2jERCJjVk3CHRmU",
+          "name": "Cavern Restaurant",
+          "types": [
+            "restaurant",
+            "food",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "restaurant",
+          "cost_sgd": null,
+          "price_level": null,
+          "onsite_co2_kg": 2.4,
+          "low_carbon_score": 48.0,
+          "geo": {
+            "latitude": 1.4088281999999999,
+            "longitude": 103.7810406
+          },
+          "geo_cluster_id": "north",
+          "address": "20 Mandai Lake Rd, #02-32 Rainforest Wild ASIA, Singapore 729825",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "11:00-15:00,17:00-21:00",
+            "tuesday": "11:00-15:00,17:00-21:00",
+            "wednesday": "11:00-15:00,17:00-21:00",
+            "thursday": "11:00-15:00,17:00-21:00",
+            "friday": "11:00-15:00,17:00-21:00",
+            "saturday": "11:00-15:00,17:00-21:00",
+            "sunday": "11:00-15:00,17:00-21:00"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [],
+          "description": "Nestled within the lush surroundings of Rainforest Wild ASIA at the Singapore Zoo, Cavern Restaurant offers a unique dining experience just a short distance from Khatib MRT via the Mandai Khatib Shuttle. This family-friendly spot is perfect for visitors exploring the zoo, providing a serene escape with its nature-inspired decor and diverse menu. The restaurant is especially popular during weekends and school holidays, so it's advisable to visit on weekdays for a more relaxed experience. Reservations are recommended, and major credit cards are accepted, ensuring a hassle-free dining experience amidst the verdant backdrop.",
+          "links": null,
+          "rating": 4.4,
+          "userRatingCount": 804,
+          "tags": [
+            "restaurant",
+            "highly-rated"
+          ]
+        },
+        {
+          "place_id": "ChIJb-ngvE4T2jERCBnpsm4RZos",
+          "name": "Koufu",
+          "types": [
+            "food_court",
+            "food",
+            "point_of_interest",
+            "establishment"
+          ],
+          "primaryType": "food_court",
+          "cost_sgd": 15,
+          "price_level": 1,
+          "onsite_co2_kg": 2.0,
+          "low_carbon_score": 45.0,
+          "geo": {
+            "latitude": 1.4284945999999998,
+            "longitude": 103.799284
+          },
+          "geo_cluster_id": "north",
+          "address": "1 Woodlands Height, Singapore 737859",
+          "nearest_mrt": null,
+          "opening_hours": {
+            "monday": "00:00-23:59",
+            "tuesday": "00:00-23:59",
+            "wednesday": "00:00-23:59",
+            "thursday": "00:00-23:59",
+            "friday": "00:00-23:59",
+            "saturday": "00:00-23:59",
+            "sunday": "00:00-23:59"
+          },
+          "duration_recommended_minutes": null,
+          "ticket_price_sgd": {
+            "adult": null,
+            "child": null,
+            "senior": null
+          },
+          "accessibility_options": [
+            "wheelchair_accessible_entrance"
+          ],
+          "description": "Nestled in the heartlands of Woodlands, Koufu at 1 Woodlands Height offers a quintessential Singaporean food court experience, just a short bus ride from Woodlands MRT. Known for its diverse range of affordable local dishes, it attracts families and residents from the surrounding neighborhoods, especially during meal times. The food court is particularly lively during weekends, making it an ideal spot for those looking to immerse themselves in local dining culture. Most stalls accept cashless payments like NETS and PayNow, so it's convenient to have these options ready for a seamless dining experience.",
+          "links": null,
+          "rating": 3.8,
+          "userRatingCount": 455,
+          "tags": [
+            "food_court",
+            "wheelchair-friendly",
+            "hawker-food-court",
+            "budget-friendly"
+          ]
+        }
+      ]
+    }
+  }
+}

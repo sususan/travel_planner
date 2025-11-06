@@ -1,0 +1,167 @@
+name: Build & Deploy Lambda (SAM-managed)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+  # runtime parameters for SAM template - update if you use different names
+  API_NAME: planner-agent
+  BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+  STAGE_NAME: prod
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Ensure ECR repository exists
+        run: |
+          repo="${{env.AWS_ACCOUNT_ID}}.dkr.ecr.${{env.AWS_REGION}}.amazonaws.com/${{env.ECR_REPOSITORY}}"
+          if ! aws ecr describe-repositories --repository-names "${{env.ECR_REPOSITORY}}" --region "${{env.AWS_REGION}}" >/dev/null 2>&1; then
+            echo "Creating ECR repository ${{env.ECR_REPOSITORY}}"
+            aws ecr create-repository --repository-name "${{env.ECR_REPOSITORY}}" --region "${{env.AWS_REGION}}" >/dev/null
+          else
+            echo "ECR repository ${{env.ECR_REPOSITORY}} already exists"
+          fi
+
+      - name: Build Docker image
+        run: |
+          IMAGE_URI="${{env.AWS_ACCOUNT_ID}}.dkr.ecr.${{env.AWS_REGION}}.amazonaws.com/${{env.ECR_REPOSITORY}}"
+          IMAGE_TAG="${GITHUB_SHA::8}-$(date +%s)"
+          FULL_TAG="${IMAGE_URI}:${IMAGE_TAG}"
+          echo "IMAGE_URI=${IMAGE_URI}" >> $GITHUB_ENV
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
+          echo "FULL_TAG=${FULL_TAG}" >> $GITHUB_ENV
+          docker build -t "${FULL_TAG}" .
+
+      - name: Push image to ECR
+        run: |
+          docker push "${{ env.FULL_TAG }}"
+
+      # --- Extract the planner_agent folder from the image so SAM can build locally ---
+      - name: Extract planner_agent folder from image for SAM build
+        env:
+          IMAGE_URI: ${{ env.FULL_TAG }}
+        run: |
+          set -euo pipefail
+          echo "Using image: ${IMAGE_URI}"
+          CID=$(docker create "${IMAGE_URI}")
+          echo "Created container id: $CID"
+          rm -rf planner_agent || true
+          # try /var/task first (faster / canonical)
+          if docker cp "${CID}:/var/task/planner_agent" ./planner_agent 2>/dev/null; then
+            echo "Copied planner_agent from /var/task"
+          elif docker cp "${CID}:/var/app/planner_agent" ./planner_agent 2>/dev/null; then
+            echo "Copied planner_agent from /var/app"
+          else
+            echo "planner_agent not found in image (checked /var/task and /var/app); aborting"
+            docker rm "${CID}" >/dev/null 2>&1 || true
+            exit 1
+          fi
+          docker rm "${CID}" >/dev/null 2>&1 || true
+          test -d planner_agent || (echo "planner_agent folder missing after copy" && exit 1)
+          echo "planner_agent contents:"
+          ls -la planner_agent
+          echo "planner_agent tree:"
+          find planner_agent -maxdepth 3 -type f -print || true
+          
+
+      - name: Install SAM CLI & prerequisites
+        run: |
+          python -m pip install --upgrade pip
+          pip install aws-sam-cli --quiet
+
+      - name: SAM build
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
+        run: |
+          set -euo pipefail
+          sam build --template-file planner_agent/template.yaml --build-dir .aws-sam/build/planner_agent
+
+      - name: Remove broken SAM-managed stack (if present)
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
+        run: |
+          set -euo pipefail
+          echo "Deleting any existing aws-sam-cli-managed-default (if present)..."
+          aws cloudformation describe-stacks --stack-name aws-sam-cli-managed-default --region "${AWS_REGION}" >/dev/null 2>&1 && {
+            aws cloudformation delete-stack --stack-name aws-sam-cli-managed-default --region "${AWS_REGION}"
+            aws cloudformation wait stack-delete-complete --stack-name aws-sam-cli-managed-default --region "${AWS_REGION}"
+            echo "Deleted aws-sam-cli-managed-default"
+          } || echo "No aws-sam-cli-managed-default stack found; continuing"
+
+      - name: SAM deploy (non-interactive, images pre-pushed)
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
+          AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}
+          API_NAME: ${{ env.API_NAME }}
+          BUCKET_NAME: ${{ env.BUCKET_NAME }}
+          STAGE_NAME: ${{ env.STAGE_NAME }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+          ROLE_ARN: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/planner-agent-LambdaRole
+        run: |
+          set -euo pipefail
+          # optional: print template path to validate it exists
+          ls -la .aws-sam/build/planner_agent/template.yaml
+          
+          #validate, build, deploy (these run on the runner and use OIDC creds already configured)          
+          #sam validate --template-file .aws-sam/build/planner_agent/template.yaml
+          #sam build --template-file .aws-sam/build/planner_agent/template.yaml --build-dir .aws-sam/build/planner_agent
+          
+          # show the env vars (for debugging)
+          echo "IMAGE_URI=${IMAGE_URI:-}"
+          echo "IMAGE_TAG=${IMAGE_TAG:-}"
+          echo "FULL_TAG=${FULL_TAG:-}"
+          
+          sam deploy \
+            --template-file .aws-sam/build/planner_agent/template.yaml \
+            --stack-name planner-agent-stack \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+            --image-repository ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY} \
+            --no-fail-on-empty-changeset \
+            --parameter-overrides \
+              ApiName=${API_NAME} \
+              BucketName=${BUCKET_NAME} \
+              StageName=${STAGE_NAME} \
+              LambdaExecutionRoleArn=${ROLE_ARN} \
+              ImageTag=${IMAGE_TAG}
+      
+
+      - name: Wait for stack to stabilize (brief)
+        run: |
+          # optional: wait a short time for resources to settle (CloudFormation ensures completion though)
+          sleep 5
+
+      - name: Smoke test - invoke Lambda (optional, will fail if function name / handler mismatch)
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
+          LAMBDA_NAME: ${{ env.LAMBDA_NAME }}
+        run: |
+          set -euo pipefail
+          # Basic check: invoke function and show response — adjust payload/expectation per your function
+          echo "Invoking Lambda ${LAMBDA_NAME} (may fail if function not ready or handler/payload mismatches)"
+          aws lambda invoke --function-name "${LAMBDA_NAME}" --payload '{"name":"CI"}' response.json --region "${AWS_REGION}" || true
+          echo "Lambda invocation output:"
+          cat response.json || true

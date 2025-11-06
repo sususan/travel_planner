@@ -1,0 +1,97 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Planner Agent Serverless API
+
+Parameters:
+  ApiName:
+    Type: String
+    Default: planner-agent
+  BucketName:
+    Type: String
+    Default: planner-agent-artifacts
+  StageName:
+    Type: String
+    Default: prod
+  LambdaExecutionRoleArn:
+    Type: String
+    Description: ARN of an IAM role that Lambda functions will assume
+  ImageTag:
+    Type: String
+    Description: ECR Image tag
+
+Globals:
+  Function:
+    Timeout: 180
+    MemorySize: 1024
+    Tracing: Active
+    Environment:
+      Variables:
+        LambdaExecutionRoleArn: !Ref LambdaExecutionRoleArn
+        ImageTag: !Ref ImageTag
+        S3_BUCKET: !Ref BucketName
+        STAGE: !Ref StageName
+        CREW_LLM_MODEL: gpt-4o-mini
+
+Resources:
+  PlannerApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Ref ApiName
+      StageName: !Ref StageName
+      TracingEnabled: true
+
+  PlannerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "planner-agent-${StageName}"
+      PackageType: Image
+      ImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/planner_agent:${ImageTag}'
+      ImageConfig:
+        Command: ["planner_agent.lambda.planner_handler.lambda_handler"]
+      Role: !Ref LambdaExecutionRoleArn
+      Architectures:
+        - x86_64
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /planner/plan
+            Method: post
+            RestApiId: !Ref PlannerApi
+
+  FinalFormatterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "final-formatter-agent-${StageName}"
+      PackageType: Image                         # <-- explicit for image-based Lambda
+      ImageUri: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/planner_agent:${ImageTag}'
+      ImageConfig:
+        Command: ["planner_agent.lambda.final_formatter_handler.lambda_handler"]
+      Role: !Ref LambdaExecutionRoleArn
+      Architectures:
+        - x86_64
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /planner/summarize
+            Method: post
+            RestApiId: !Ref PlannerApi
+
+Outputs:
+  ApiBaseUrl:
+    Description: Base invoke URL for the API stage
+    Value: !Sub "https://${PlannerApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}"
+
+  PlannerPlanUrl:
+    Description: Full URL for the planner POST endpoint
+    Value: !Sub "https://${PlannerApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/planner/plan"
+
+  PlannerFinalUrl:
+    Description: Full URL for the final formatter POST endpoint
+    Value: !Sub "https://${PlannerApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/planner/final"
+
+  BucketNameOut:
+    Description: S3 bucket used for artifacts
+    Value: !Ref BucketName
+
