@@ -112,16 +112,16 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
     response = call_transport_agent_api(bucket_name, fileName, "Planner Agent", session)
     response_data = lambda_synchronous_call(TransportAgentARN, bucket_name, fileName, "Planner Agent", session)
     """if len(response_data) != 0:
-        transport_options = response_data.get("transport", {})
+        transport_options = response_data.get("result", {})
         itinerary = attach_transport_options(itinerary, transport_options)
         payload["itinerary"] = itinerary"""
-    if len(response) != 0:
+    if response:
         response_data = response.json() if response else {}
         logger.info(f"Transport Agent response: {response_data}")
         statusCode = response.status_code
         transport_options= {}
         if statusCode == 200 or statusCode == 202:
-            transport_options = response_data.get("transport", {})
+            transport_options = response_data.get("result", {})
             itinerary = attach_transport_options(itinerary, transport_options)
     # Stage 3: Validation & possible repair loop
     gates=  validate_itinerary(itinerary, metrics, payload)
@@ -145,16 +145,16 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
         response = call_transport_agent_api(bucket_name, fileName, "Planner Agent", session)
         """response_data = lambda_synchronous_call(TransportAgentARN, bucket_name, fileName, "Planner Agent", session)
         if len(response_data) != 0:
-            transport_options = response_data.get("transport", {})
+            transport_options = response_data.get("result", {})
             new_it = attach_transport_options(itinerary, transport_options)
             itinerary = new_it
             payload["itinerary"]= itinerary"""
-        if len(response) != 0:
+        if response:
             response_data = response.json() if response else {}
             logger.info(f"Transport Agent response: {response_data}")
             statusCode = response.status_code
             if statusCode == 200 or statusCode == 202:
-                transport_options = response_data.get("transport", {})
+                transport_options = response_data.get("result", {})
                 new_it = attach_transport_options(itinerary, transport_options)
                 itinerary = new_it
                 payload["itinerary"] = itinerary
@@ -350,7 +350,7 @@ if __name__ == "__main__":
     response = call_transport_agent_api(bucket_name, fileName, "Planner Agent", session)
     #response_data = lambda_synchronous_call(TransportAgentARN, bucket_name, fileName, "Planner Agent", session)
     """if len(response_data) != 0:
-        transport_options = response_data.get("transport", {})
+        transport_options = response_data.get("result", {})
         itinerary = attach_transport_options(itinerary, transport_options)
         payload["itinerary"] = itinerary"""
     if len(response) != 0:
@@ -359,7 +359,7 @@ if __name__ == "__main__":
         statusCode = response.status_code
         transport_options = {}
         if statusCode == 200 or statusCode == 202:
-            transport_options = response_data.get("transport", {})
+            transport_options = response_data.get("result", {})
             itinerary = attach_transport_options(itinerary, transport_options)
     # Stage 3: Validation & possible repair loop
     gates = validate_itinerary(itinerary, metrics, payload)
@@ -384,7 +384,7 @@ if __name__ == "__main__":
         response = call_transport_agent_api(bucket_name, fileName, "Planner Agent", session)
         """response_data = lambda_synchronous_call(TransportAgentARN, bucket_name, fileName, "Planner Agent", session)
         if len(response_data) != 0:
-            transport_options = response_data.get("transport", {})
+            transport_options = response_data.get("result", {})
             new_it = attach_transport_options(itinerary, transport_options)
             itinerary = new_it
             payload["itinerary"]= itinerary"""
@@ -393,7 +393,7 @@ if __name__ == "__main__":
             logger.info(f"Transport Agent response: {response_data}")
             statusCode = response.status_code
             if statusCode == 200 or statusCode == 202:
-                transport_options = response_data.get("transport", {})
+                transport_options = response_data.get("result", {})
                 new_it = attach_transport_options(itinerary, transport_options)
                 itinerary = new_it
                 payload["itinerary"] = itinerary
