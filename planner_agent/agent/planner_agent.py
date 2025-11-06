@@ -10,6 +10,7 @@ import time
 import os
 
 from planner_agent.agent.transport import attach_transport_options
+from planner_agent.tools.config import LLM_MODEL, OPENAI_API_KEY
 from planner_agent.tools.helper import impute_price
 
 logger = logging.getLogger()
@@ -24,8 +25,6 @@ except Exception:
     Task = None
     LLM = None
 
-LLM_MODEL = os.getenv("CREW_LLM_MODEL", "gpt-4o-mini")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # planner_agent.py (inside CrewAIAdapter)
 

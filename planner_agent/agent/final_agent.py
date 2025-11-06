@@ -18,6 +18,8 @@ import json
 import time
 from typing import Dict, Any, Optional, List
 
+from planner_agent.tools.config import LLM_MODEL, OPENAI_API_KEY
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -28,10 +30,6 @@ except Exception:
     Crew = None
     Agent = None
     Task = None
-
-LLM_MODEL = os.getenv("CREW_LLM_MODEL", "gpt-4o-mini")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
 
 # ------------------------
 # Helper for Fallback HTML (Simplified)
