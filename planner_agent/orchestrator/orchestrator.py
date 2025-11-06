@@ -195,8 +195,7 @@ def sumarrizer(payload: dict):
         metrics = payload.get("metrics", {})
         explanation = payload.get("explanation", {})
         gates = payload.get("gates", {})
-        planner_agent = PlannerAgent(crew_adapter=PLANNER_CREW_ADAPTER)
-        final_agent = CrewAIAdapterForFinal(crew_adapter=FINAL_CREW_ADAPTER)
+        final_agent = CrewAIAdapterForFinal()
         response = final_agent.run(requirements, itinerary, metrics, explanation, gates)
         logger.info("Final agent returned payload (kept in logs for debugging)")
 
