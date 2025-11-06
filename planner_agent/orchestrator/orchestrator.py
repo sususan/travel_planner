@@ -174,7 +174,7 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
     update_json_data(bucket_name, Summarizer_Agent_Folder + "/" + fileName, payload)
     # Call summarizer
     logger.info("Calling Summarizer Agent")
-    summarize = sumarrizer(payload, bucket_name, fileName)
+    summarize = sumarrizer(payload, bucket_name, fileName, session)
     logger.info(f"Summarizer Agent returned payload: {summarize}")
     return summarize
 
@@ -190,7 +190,7 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
     }"""
     #return final_payload
 
-def sumarrizer(payload: dict, bucket_name: str, fileName: str):
+def sumarrizer(payload: dict, bucket_name: str, fileName: str, session: str = ""):
     try:
         # Ask FinalAgent to run (keeps existing behavior)
         requirements = payload.get("requirements", {})
@@ -322,14 +322,14 @@ def lambda_synchronous_call(function_name: str, bucket_name: str, key: str, send
 
 if __name__ == "__main__":
     import json
-    with open("../inputs/research_output.json", "r") as f:
+    with open("../inputs/20251031T003447_su12ea72.json", "r") as f:
         payload = json.load(f)
     #scored = score_candidates(payload)                      # accepts payload["requirements"]["weights"] if present
     #sl = shortlist(payload, scored)                         # respects budget/type caps if provided
     #itinerary, metrics = assign_to_days(payload, sl)        # any duration; fills missing with (open slot)
     #print(explain(itinerary, metrics))
     session= "001"
-    fileName = "research_output.json"
+    fileName = "20251031T003447_su12ea72.json"
     gates = []
     t0 = time.time()
     gates = []
@@ -372,7 +372,7 @@ if __name__ == "__main__":
     while (iterations == 0 or not gates.get("all_ok")) and iterations < MAX_AGENT_ITERATIONS:
         iterations += 1
         # Agentic repair: pass current itinerary, gates, metrics, shortlist
-        new_it, new_metrics = planner_agent.run(payload.get("requirements", {}), attractions, dining, itinerary,
+        new_it, new_metrics = planner_agent.run(payload.get("requirements", {}), attractions, sl,  dining, itinerary,
                                                 transport_options,
                                                 metrics, gates)
         logger.info(f"Itinerary by Planner Agent: {new_it}")
@@ -415,4 +415,4 @@ if __name__ == "__main__":
     # Upload to Summarizer Agent bucket
     update_json_data(bucket_name, Summarizer_Agent_Folder + "/" + fileName, payload)
     # Call summarizer
-    print(sumarrizer(payload,bucket_name, fileName))
+    print(sumarrizer(payload,bucket_name, fileName, session))

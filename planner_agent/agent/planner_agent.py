@@ -284,6 +284,7 @@ class PlannerAgent:
     def run(self,
             requirements: Dict[str, Any],
             attractions: Dict[str, Any],
+            shortlist: Dict[str, Any],
             dining: Dict[str, Any],
             itinerary: Dict[str, Any],
             transport: Dict[str, Any],
@@ -304,7 +305,7 @@ class PlannerAgent:
         needs_agent = force_review or not gates_ok
 
         if self.crew_adapter and needs_agent:
-            return self._run_with_crew(itinerary, transport, metrics, attractions, dining, requirements, gates,
+            return self._run_with_crew(itinerary, transport, metrics, shortlist, attractions, dining, requirements, gates,
                                        review_only=(force_review and gates_ok))
 
         # No Crew adapter or not needed -> local behavior
@@ -322,11 +323,11 @@ class PlannerAgent:
 
         # default fallback: local repair if gates failing, otherwise return original
         if not gates_ok:
-            shortlist = {**attractions, **dining}
             return self._local_repair(itinerary, metrics, shortlist, gates)
         return itinerary, metrics
 
-    def _run_with_crew(self, itinerary, transport, metrics, attractions, dining, requirements, gates, review_only: bool = False):
+    def _run_with_crew(self, itinerary, transport, metrics,
+            shortlist, attractions, dining, requirements, gates, review_only: bool = False):
         """
         AGENTIC: call Crew to REVIEW or REPAIR the itinerary.
         review_only=True -> agent should NOT make large structural changes, only produce a 'review' and 'recommended edits'
@@ -412,7 +413,6 @@ EXPECTED_RESPONSE_SCHEMA:
                     m["_agent_review"] = explained.get("agent_summary", {})
                     return explained.get("itinerary_suggested", itinerary), m
                 else:
-                    shortlist = {**attractions, **dining}
                     return self._local_repair(itinerary, metrics, shortlist , gates)
 
             # parse/validate response (response may already be a dict)
@@ -452,7 +452,6 @@ EXPECTED_RESPONSE_SCHEMA:
                 m = dict(metrics)
                 m["_agent_review"] = explained.get("agent_summary", {})
                 return explained.get("itinerary_suggested", itinerary), m
-            shortlist = {**attractions, **dining}
             return self._local_repair(itinerary, metrics, shortlist, gates)
 
         # If we reach here, parsing failed; fallback
@@ -461,7 +460,6 @@ EXPECTED_RESPONSE_SCHEMA:
             m = dict(metrics)
             m["_agent_review"] = explained.get("agent_summary", {})
             return explained.get("itinerary_suggested", itinerary), m
-        shortlist = {**attractions, **dining}
         return self._local_repair(itinerary, metrics, shortlist, gates)
 
     def local_explain_and_recommend(self, requirements, itinerary, transport, metrics, gates, attractions, dining):
