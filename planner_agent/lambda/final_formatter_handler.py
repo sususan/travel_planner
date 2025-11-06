@@ -1,9 +1,12 @@
 # /mnt/data/final_formatter_handler.py
 import json
 import logging
+import os
 import traceback
 import base64
 import time
+
+import planner_agent.tools.config
 from planner_agent.agent.final_agent import CrewAIAdapterForFinal
 from planner_agent.orchestrator.orchestrator import FINAL_CREW_ADAPTER
 from planner_agent.planner_core.core import explain
@@ -21,13 +24,17 @@ def lambda_handler(event, context):
     logger.info("!! lambda_handler !!")
     statusCode = 200
     response_payload = None
+    planner_agent.tools.config.OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     try:
         t0 = time.time()
         parsed_json = None
-        json_input = event.get("body", "").strip("") if isinstance(event.get("body", ""), str) else ""
-        logger.info(f"JSON input: {json_input}")
-        if json_input:
+        if not isinstance(event, dict):
+            json_input = event.get("body", "").strip("")
             parsed_json = json.loads(json_input)
+        else:
+            parsed_json = event
+
+        if parsed_json is not None:
             bucket_name = parsed_json.get("bucket_name")
             key = parsed_json.get("key")
             sender_agent = parsed_json.get("sender_agent")
@@ -37,7 +44,7 @@ def lambda_handler(event, context):
                 payload = get_json_data(bucket_name, key)
                 fileName = key.split('/')[-1]
                 # Stage 4: Final formatting using final agent
-                final_agent = CrewAIAdapterForFinal(crew_adapter=FINAL_CREW_ADAPTER)
+                final_agent = CrewAIAdapterForFinal()
                 requirements = payload.get("requirements", {})
                 itinerary = payload.get("itinerary", {})
                 metrics = payload.get("metrics", {})
@@ -45,7 +52,7 @@ def lambda_handler(event, context):
                 gates = payload.get("gates", {})
 
                 # Ask FinalAgent to run (keeps existing behavior)
-                response = final_agent.run(requirements, itinerary, metrics, explanation, gates)
+                response = final_agent.run(itinerary, metrics,  gates, requirements)
                 logger.info("Final agent returned payload (kept in logs for debugging)")
 
                 # Build human-readable text (includes explanation and gates)

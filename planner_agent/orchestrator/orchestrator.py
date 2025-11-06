@@ -133,7 +133,7 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
         # Agentic repair: pass current itinerary, gates, metrics, shortlist
         new_it, new_metrics = planner_agent.run(payload.get("requirements", {}), attractions, dining, itinerary, transport_options,
                                                 metrics, gates)
-        logger.info(f"Itinerary by Planner Agent: {itinerary}")
+        logger.info(f"Itinerary by Planner Agent: {new_it}")
         if not new_it:
             # planner couldn't repair -> break and return best-effort
             break
