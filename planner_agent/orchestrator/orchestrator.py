@@ -174,7 +174,7 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
     update_json_data(bucket_name, Summarizer_Agent_Folder + "/" + fileName, payload)
     # Call summarizer
     logger.info("Calling Summarizer Agent")
-    summarize = sumarrizer(payload, fileName)
+    summarize = sumarrizer(payload, bucket_name, fileName)
     logger.info(f"Summarizer Agent returned payload: {summarize}")
     return summarize
 
@@ -190,7 +190,7 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
     }"""
     #return final_payload
 
-def sumarrizer(payload: dict, fileName: str):
+def sumarrizer(payload: dict, bucket_name: str, fileName: str):
     try:
         # Ask FinalAgent to run (keeps existing behavior)
         requirements = payload.get("requirements", {})
@@ -415,4 +415,4 @@ if __name__ == "__main__":
     # Upload to Summarizer Agent bucket
     update_json_data(bucket_name, Summarizer_Agent_Folder + "/" + fileName, payload)
     # Call summarizer
-    print(sumarrizer(payload, fileName))
+    print(sumarrizer(payload,bucket_name, fileName))
