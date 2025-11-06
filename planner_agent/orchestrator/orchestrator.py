@@ -345,22 +345,22 @@ if __name__ == "__main__":
     payload["itinerary"] = itinerary
     # Upload to Transport Agent bucket
     transport_options = {}
-    update_json_data(bucket_name, Transport_Agent_Folder + "/" + fileName, payload)
+    #update_json_data(bucket_name, Transport_Agent_Folder + "/" + fileName, payload)
     # Call Transport Agent
-    # response = call_transport_agent_api(bucket_name, fileName, "Planner Agent", session)
-    response_data = lambda_synchronous_call(TransportAgentARN, bucket_name, fileName, "Planner Agent", session)
-    if len(response_data) != 0:
+    response = call_transport_agent_api(bucket_name, fileName, "Planner Agent", session)
+    #response_data = lambda_synchronous_call(TransportAgentARN, bucket_name, fileName, "Planner Agent", session)
+    """if len(response_data) != 0:
         transport_options = response_data.get("transport", {})
         itinerary = attach_transport_options(itinerary, transport_options)
-        payload["itinerary"] = itinerary
-    """if len(response) != 0:
+        payload["itinerary"] = itinerary"""
+    if len(response) != 0:
         response_data = response.json() if response else {}
         logger.info(f"Transport Agent response: {response_data}")
         statusCode = response.status_code
-        transport_options= {}
+        transport_options = {}
         if statusCode == 200 or statusCode == 202:
             transport_options = response_data.get("transport", {})
-            itinerary = attach_transport_options(itinerary, transport_options)"""
+            itinerary = attach_transport_options(itinerary, transport_options)
     # Stage 3: Validation & possible repair loop
     gates = validate_itinerary(itinerary, metrics, payload)
     planner_agent = PlannerAgent(crew_adapter=PLANNER_CREW_ADAPTER)
@@ -379,16 +379,16 @@ if __name__ == "__main__":
         # Stage 2 again: reattach transport options in case structure changed (planner may have swapped items)
         # Update the new itinerary
         payload["itinerary"] = new_it
-        update_json_data(bucket_name, Transport_Agent_Folder + "/" + fileName, payload)
+        #update_json_data(bucket_name, Transport_Agent_Folder + "/" + fileName, payload)
         # Call Transport Agent
-        # response = call_transport_agent_api(bucket_name, fileName, "Planner Agent", session)
-        response_data = lambda_synchronous_call(TransportAgentARN, bucket_name, fileName, "Planner Agent", session)
+        response = call_transport_agent_api(bucket_name, fileName, "Planner Agent", session)
+        """response_data = lambda_synchronous_call(TransportAgentARN, bucket_name, fileName, "Planner Agent", session)
         if len(response_data) != 0:
             transport_options = response_data.get("transport", {})
             new_it = attach_transport_options(itinerary, transport_options)
             itinerary = new_it
-            payload["itinerary"] = itinerary
-        """if len(response) != 0:
+            payload["itinerary"]= itinerary"""
+        if len(response) != 0:
             response_data = response.json() if response else {}
             logger.info(f"Transport Agent response: {response_data}")
             statusCode = response.status_code
@@ -396,7 +396,7 @@ if __name__ == "__main__":
                 transport_options = response_data.get("transport", {})
                 new_it = attach_transport_options(itinerary, transport_options)
                 itinerary = new_it
-                payload["itinerary"] = itinerary"""
+                payload["itinerary"] = itinerary
 
         metrics = new_metrics or metrics
         gates = validate_itinerary(itinerary, metrics, payload)
@@ -410,4 +410,6 @@ if __name__ == "__main__":
     payload["metrics"] = metrics
     payload["explanation"] = explanation
     # Upload to Summarizer Agent bucket
-
+    update_json_data(bucket_name, Summarizer_Agent_Folder + "/" + fileName, payload)
+    # Call summarizer
+    print(sumarrizer(payload))

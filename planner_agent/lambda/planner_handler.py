@@ -6,8 +6,7 @@ import json, os, logging
 import traceback
 from botocore.exceptions import ClientError
 from planner_agent.orchestrator.orchestrator import plan_itinerary, lambda_synchronous_call
-from planner_agent.tools.config import Transport_Agent_Folder, Summarizer_Agent_Folder, OPENAI_API_KEY, \
-    TransportAgentARN
+from planner_agent.tools.config import Transport_Agent_Folder, Summarizer_Agent_Folder,  TransportAgentARN
 from planner_agent.tools.s3io import get_json_data
 
 logger = logging.getLogger()
