@@ -6,11 +6,8 @@ import logging
 import time
 import traceback
 from typing import Dict, Any
-
 import requests
 import boto3
-
-from planner_agent.agent import final_agent
 from planner_agent.agent.transport import TransportAdapter, attach_transport_options
 from planner_agent.planner_core.core import score_candidates, shortlist, assign_to_days, explain
 from planner_agent.tools.config import MAX_AGENT_ITERATIONS, Summarizer_Agent_Folder, Final_ADAPTERAPI_ENDPOINT, \
@@ -112,20 +109,20 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
     transport_options= {}
     update_json_data(bucket_name,Transport_Agent_Folder + "/" + fileName, payload)
     # Call Transport Agent
-    #response = call_transport_agent_api(bucket_name, fileName, "Planner Agent", session)
+    response = call_transport_agent_api(bucket_name, fileName, "Planner Agent", session)
     response_data = lambda_synchronous_call(TransportAgentARN, bucket_name, fileName, "Planner Agent", session)
-    if len(response_data) != 0:
+    """if len(response_data) != 0:
         transport_options = response_data.get("transport", {})
         itinerary = attach_transport_options(itinerary, transport_options)
-        payload["itinerary"] = itinerary
-    """if len(response) != 0:
+        payload["itinerary"] = itinerary"""
+    if len(response) != 0:
         response_data = response.json() if response else {}
         logger.info(f"Transport Agent response: {response_data}")
         statusCode = response.status_code
         transport_options= {}
         if statusCode == 200 or statusCode == 202:
             transport_options = response_data.get("transport", {})
-            itinerary = attach_transport_options(itinerary, transport_options)"""
+            itinerary = attach_transport_options(itinerary, transport_options)
     # Stage 3: Validation & possible repair loop
     gates=  validate_itinerary(itinerary, metrics, payload)
     planner_agent = PlannerAgent(crew_adapter=PLANNER_CREW_ADAPTER)
@@ -145,14 +142,14 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
         payload["itinerary"] = new_it
         update_json_data(bucket_name, Transport_Agent_Folder + "/" + fileName, payload)
         # Call Transport Agent
-        #response = call_transport_agent_api(bucket_name, fileName, "Planner Agent", session)
-        response_data = lambda_synchronous_call(TransportAgentARN, bucket_name, fileName, "Planner Agent", session)
+        response = call_transport_agent_api(bucket_name, fileName, "Planner Agent", session)
+        """response_data = lambda_synchronous_call(TransportAgentARN, bucket_name, fileName, "Planner Agent", session)
         if len(response_data) != 0:
             transport_options = response_data.get("transport", {})
             new_it = attach_transport_options(itinerary, transport_options)
             itinerary = new_it
-            payload["itinerary"]= itinerary
-        """if len(response) != 0:
+            payload["itinerary"]= itinerary"""
+        if len(response) != 0:
             response_data = response.json() if response else {}
             logger.info(f"Transport Agent response: {response_data}")
             statusCode = response.status_code
@@ -160,7 +157,7 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
                 transport_options = response_data.get("transport", {})
                 new_it = attach_transport_options(itinerary, transport_options)
                 itinerary = new_it
-                payload["itinerary"] = itinerary"""
+                payload["itinerary"] = itinerary
 
         metrics = new_metrics or metrics
         gates = validate_itinerary(itinerary, metrics, payload)
@@ -177,6 +174,7 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
     update_json_data(bucket_name, Summarizer_Agent_Folder + "/" + fileName, payload)
     # Call summarizer
     return sumarrizer(payload)
+
     """return {
         # "scored": scored,
         # "shortlist": sl,
@@ -197,6 +195,7 @@ def sumarrizer(payload: dict):
         metrics = payload.get("metrics", {})
         explanation = payload.get("explanation", {})
         gates = payload.get("gates", {})
+        final_agent = CrewAIAdapterForFinal(crew_adapter=FINAL_CREW_ADAPTER)
         response = final_agent.run(requirements, itinerary, metrics, explanation, gates)
         logger.info("Final agent returned payload (kept in logs for debugging)")
 
