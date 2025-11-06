@@ -94,6 +94,7 @@ def plan_itinerary(bucket_name: str, key: str, session: str) -> Dict[str, Any]:
     """
     gates = []
     t0 = time.time()
+    transport_options= {}
     payload = get_json_data(bucket_name, key)
     fileName = key.split('/')[-1]
     # Stage 1: Heuristic plan
@@ -106,9 +107,9 @@ def plan_itinerary(bucket_name: str, key: str, session: str) -> Dict[str, Any]:
     # Add itinerary to payload and upload to S3
     payload["itinerary"] = itinerary
     # Upload to Transport Agent bucket
-    transport_options= {}
     update_json_data(bucket_name,Transport_Agent_Folder + "/" + fileName, payload)
     # Call Transport Agent
+    #accomodation = payload.get("requirements", {}).get("accomodation", {})
     response = call_transport_agent_api(bucket_name, fileName, "Planner Agent", session)
     #response_data = lambda_synchronous_call(TransportAgentARN, bucket_name, fileName, "Planner Agent", session)
     """if len(response_data) != 0:
@@ -119,10 +120,9 @@ def plan_itinerary(bucket_name: str, key: str, session: str) -> Dict[str, Any]:
         response_data = response.json() if response else {}
         logger.info(f"Transport Agent response: {response_data}")
         statusCode = response.status_code
-        transport_options= {}
         if statusCode == 200 or statusCode == 202:
             transport_options = response_data.get("result", {})
-            itinerary = attach_transport_options(itinerary, transport_options)
+            #itinerary = attach_transport_options(itinerary, transport_options)
     # Stage 3: Validation & possible repair loop
     gates=  validate_itinerary(itinerary, metrics, payload)
     planner_agent = PlannerAgent(crew_adapter=PLANNER_CREW_ADAPTER)
@@ -155,9 +155,9 @@ def plan_itinerary(bucket_name: str, key: str, session: str) -> Dict[str, Any]:
             statusCode = response.status_code
             if statusCode == 200 or statusCode == 202:
                 transport_options = response_data.get("result", {})
-                new_it = attach_transport_options(itinerary, transport_options)
-                itinerary = new_it
-                payload["itinerary"] = itinerary
+                #new_it = attach_transport_options(itinerary, transport_options)
+                #itinerary = new_it
+                #payload["itinerary"] = itinerary
 
         metrics = new_metrics or metrics
         gates = validate_itinerary(itinerary, metrics, payload)
@@ -174,7 +174,7 @@ def plan_itinerary(bucket_name: str, key: str, session: str) -> Dict[str, Any]:
     update_json_data(bucket_name, Summarizer_Agent_Folder + "/" + fileName, payload)
     # Call summarizer
     logger.info("Calling Summarizer Agent")
-    summarize = sumarrizer(payload, bucket_name, fileName, session)
+    summarize = sumarrizer(payload, transport_options, bucket_name, fileName, session)
     logger.info(f"Summarizer Agent returned payload: {summarize}")
     return summarize
 
@@ -190,7 +190,7 @@ def plan_itinerary(bucket_name: str, key: str, session: str) -> Dict[str, Any]:
     }"""
     #return final_payload
 
-def sumarrizer(payload: dict, bucket_name: str, fileName: str, session: str = ""):
+def sumarrizer(payload: dict, transport_options: dict, bucket_name: str, fileName: str, session: str = ""):
     try:
         # Ask FinalAgent to run (keeps existing behavior)
         requirements = payload.get("requirements", {})
@@ -199,7 +199,7 @@ def sumarrizer(payload: dict, bucket_name: str, fileName: str, session: str = ""
         explanation = payload.get("explanation", {})
         gates = payload.get("gates", {})
         final_agent = CrewAIAdapterForFinal()
-        response = final_agent.run(itinerary, metrics,  gates, requirements)
+        response = final_agent.run(itinerary, transport_options, metrics,  gates, requirements)
         logger.info(f"Final Agent response: {response}")
 
         # Build human-readable text (includes explanation and gates)
@@ -415,4 +415,4 @@ if __name__ == "__main__":
     # Upload to Summarizer Agent bucket
     update_json_data(bucket_name, Summarizer_Agent_Folder + "/" + fileName, payload)
     # Call summarizer
-    print(sumarrizer(payload,bucket_name, fileName, session))
+    print(sumarrizer(payload, transport_options,bucket_name , fileName, session))

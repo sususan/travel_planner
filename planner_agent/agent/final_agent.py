@@ -110,7 +110,7 @@ class CrewAIAdapterForFinal:
         self.verbose = verbose
         self.max_retries = max_retries
 
-    def _build_agent_spec(self, requirements: Dict[str, Any], itinerary: Dict[str, Any]):
+    def _build_agent_spec(self, requirements: Dict[str, Any], itinerary: Dict[str, Any], transport_options: Dict[str, Any] = None):
         """
         Defines the Agent's role and the Task, enforcing the desired output structure.
         """
@@ -164,16 +164,57 @@ class CrewAIAdapterForFinal:
         DATA INPUT:
         USER REQUIREMENTS: {json.dumps(requirements, indent=2)}
         FINAL ITINERARY (Validated): {json.dumps(itinerary, indent=2)}
+        TRANSPORT OPTIONS (Optional): {json.dumps(transport_options, indent=2)}
 
         --- STYLE AND FORMATTING RULES ---
         1. **Target Audience:** The end-user (traveler). Use a friendly, encouraging, and clear tone.
-        2. **Layout:** The output MUST be a single, complete HTML document. Use inline CSS or `<style>` tags.
-        3. **Content:**
-            - Title/Header for the trip.
-            - A brief, welcoming introduction paragraph (1-2 sentences).
-            - A **Day-by-Day breakdown** of the itinerary, including times, place names, and brief descriptions.
-            - A final section with 3-5 key **Action Items** (e.g., "Confirm ticket bookings," "Check weather," "Pack comfortable shoes").
-
+        2. **Layout:**  
+           The output MUST be a **single, complete HTML document** containing:
+           - A `<head>` section with `<meta charset="UTF-8">` and `<meta name="viewport" content="width=device-width, initial-scale=1.0">`
+           - A `<style>` block or inline CSS for consistent formatting (cards, headings, icons, etc.)
+           - A `<body>` section with clear visual hierarchy.
+        3. **Content Requirements:**
+           - **Title/Header:** Display the trip title and dates prominently.
+           - **Introduction Paragraph (1–2 sentences):**  
+             Warmly summarize the trip (destination, style, duration).
+           - **Day-by-Day Breakdown:**  
+             For each day:
+             - Include time slots (Morning / Afternoon / Evening).
+             - For each place:
+               - Show the **place name**, **address**, and **short summary** (15–30 words).  
+               - Add **tags or icons** (e.g., “Family-friendly”, “Stroller-friendly”, “Outdoor”).  
+               - If available, include booking info or cost.
+             - After each place (except the last of the day), include a Transport Section that summarizes the available transport options.
+                Use data from the TRANSPORT_OPTIONS JSON where from_place_id == current_place.place_id and to_place_id == next_place.place_id.
+             -Transport Selection Rules:
+                1. Primary Mode: Always select and display the transport mode with the shortest duration.            
+                2.Alternative Modes: Additionally, display up to two alternative modes only if they meet one of the following criteria:            
+                    -Significantly Cheaper: Cost is at least 30% lower than the Primary Mode.            
+                    -Eco-Friendly: The mode is "Walk" or "Bike" (considered the "greener" option).            
+             -Display Format for Each Mode:            
+                Mode (e.g., “Walk”, “Bus”, “Taxi”, “MRT”)            
+                Duration (minutes)            
+                Approximate cost (SGD)            
+                Route summary (1 concise sentence explaining the route/line/vehicle).
+             Prefer the shortest duration mode, but display alternatives if they are notably cheaper or greener.
+           - **Final Section – Action Items (3–5):**  
+             Present a short checklist like:
+             - Confirm ticket bookings  
+             - Check local weather forecast  
+             - Pack comfortable shoes  
+             - Download offline maps  
+        
+        4. **Tone & Readability:**
+           - Write concise, traveler-friendly sentences.
+           - Use active voice and optimistic phrasing (“Enjoy a relaxing morning at…”, “Hop on a quick MRT ride…”).
+           - Avoid repeating place names excessively.
+        
+        5. **Technical Requirements:**
+           - Wrap each place block in a container like `<div class="place" data-place-id="...">`
+           - For each transport option, use `<div class="transport" data-from="..." data-to="...">`
+           - Include an overall `<section class="summary">` at the end summarizing total distance, estimated cost, and eco-score if available.
+           - Ensure all times are formatted as `HH:MM` 24-hour local time.
+           - Return the entire HTML document inside a single JSON object with the key `"human_summary"`.
         --- OUTPUT CONSTRAINTS ---
         Produce a JSON object matching the 'EXPECTED_RESPONSE_SCHEMA' below. Do NOT include any text outside the JSON block.
 
@@ -183,14 +224,14 @@ class CrewAIAdapterForFinal:
 
         return agent, task_description
 
-    def run(self, itinerary: Dict[str, Any], metrics: Dict[str, Any], gates: Dict[str, Any],
+    def run(self, itinerary: Dict[str, Any], transport_options: Dict[str, Any], metrics: Dict[str, Any], gates: Dict[str, Any],
             requirements: Dict[str, Any], **kwargs) -> Dict[str, Any]:
         """
         Runs the single CrewAI agent to generate the final summary.
         """
         if Crew is not None:
             try:
-                agent, task_description = self._build_agent_spec(requirements, itinerary)
+                agent, task_description = self._build_agent_spec(requirements, itinerary, transport_options)
 
                 # The Task uses the comprehensive task_description as its prompt
                 summary_task = Task(
