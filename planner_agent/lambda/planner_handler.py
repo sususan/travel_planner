@@ -6,7 +6,7 @@ import json, os, logging
 import traceback
 from botocore.exceptions import ClientError
 from planner_agent.orchestrator.orchestrator import plan_itinerary
-from planner_agent.tools.config import Transport_Agent_Folder, Summarizer_Agent_Folder
+from planner_agent.tools.config import Transport_Agent_Folder, Summarizer_Agent_Folder, OPENAI_API_KEY
 from planner_agent.tools.s3io import get_json_data
 
 logger = logging.getLogger()
@@ -14,6 +14,8 @@ logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     logger.info("!! lambda_handler !!")
+    logger.info("OPENAI_API_KEY repr:", OPENAI_API_KEY)
+    logger.info("OPENAI_API_KEY repr:", repr(os.environ.get('OPENAI_API_KEY')))
     session = ""
     statusCode = 200
     response = ""
@@ -35,8 +37,8 @@ def lambda_handler(event, context):
                 #payload = get_json_data(key)
                 fileName = key.split('/')[-1]
                 # Call orchestrator to plan itinerary
-                ret = plan_itinerary(bucket_name,key, session)
-                logger.info(f"Plan itinerary returned: {ret}")
+                #ret = plan_itinerary(bucket_name,key, session)
+                #logger.info(f"Plan itinerary returned: {ret}")
                 statusCode = 200
                 response = {
                     "statusCode": 200,
@@ -44,7 +46,7 @@ def lambda_handler(event, context):
                     "session": session,
                     'input_location': key,
                     'output_location': Summarizer_Agent_Folder + '/' + fileName,
-                    'summary': ret
+                    #'summary': ret
                 }
             else:
                 logger.error("Missing 'bucket_name' or 'key' in event")
