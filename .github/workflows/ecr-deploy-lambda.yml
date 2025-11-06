@@ -122,7 +122,7 @@ jobs:
           STAGE_NAME: ${{ env.STAGE_NAME }}
           ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
           ROLE_ARN: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/planner-agent-LambdaRole
-          OPENAI_API_KEY: Key
+          OPENAI_API_KEY: "OPENAI_API_KEY"
         run: |
           set -euo pipefail
           # optional: print template path to validate it exists
