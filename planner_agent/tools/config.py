@@ -13,4 +13,4 @@ Final_ADAPTERAPI_ENDPOINT = "https://s0k25s7kqk.execute-api.ap-southeast-1.amazo
 X_API_Key = "ELyVlpoxgyHVV7MgqH8waT2Byab36oY7rxjZ5CSd" #os.getenv("X-API-Key")
 TransportAgentARN = 'arn:aws:lambda:ap-southeast-1:641675857341:function:transport-queue-handler-prod'
 LLM_MODEL = os.getenv("CREW_LLM_MODEL", "gpt-4o-mini")
-OPENAI_API_KEY =os.getenv("OPENAI_API_KEY","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")
+OPENAI_API_KEY =os.getenv("OPENAI_API_KEY")
