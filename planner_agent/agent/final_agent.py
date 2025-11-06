@@ -110,7 +110,7 @@ class CrewAIAdapterForFinal:
         self.verbose = verbose
         self.max_retries = max_retries
 
-    def _build_agent_spec(self, requirements: Dict[str, Any], itinerary: Dict[str, Any], transport_options: Dict[str, Any] = None):
+    def _build_agent_spec(self, requirements: Dict[str, Any], itinerary: Dict[str, Any], transport_options: Dict[str, Any] = None, explanation: Dict[str, Any] = None,):
         """
         Defines the Agent's role and the Task, enforcing the desired output structure.
         """
@@ -165,6 +165,7 @@ class CrewAIAdapterForFinal:
         USER REQUIREMENTS: {json.dumps(requirements, indent=2)}
         FINAL ITINERARY (Validated): {json.dumps(itinerary, indent=2)}
         TRANSPORT OPTIONS (Optional): {json.dumps(transport_options, indent=2)}
+        #EXPLANATION: {json.dumps(explanation, indent=2)}
 
         --- STYLE AND FORMATTING RULES ---
         1. **Target Audience:** The end-user (traveler). Use a friendly, encouraging, and clear tone.
@@ -203,13 +204,14 @@ class CrewAIAdapterForFinal:
              - Check local weather forecast  
              - Pack comfortable shoes  
              - Download offline maps  
+        4. Included the simaple explanation from the planner agent: {json.dumps(explanation, indent=2)} in each days.
         
-        4. **Tone & Readability:**
+        5. **Tone & Readability:**
            - Write concise, traveler-friendly sentences.
            - Use active voice and optimistic phrasing (“Enjoy a relaxing morning at…”, “Hop on a quick MRT ride…”).
            - Avoid repeating place names excessively.
         
-        5. **Technical Requirements:**
+        6. **Technical Requirements:**
            - Wrap each place block in a container like `<div class="place" data-place-id="...">`
            - For each transport option, use `<div class="transport" data-from="..." data-to="...">`
            - Include an overall `<section class="summary">` at the end summarizing total distance, estimated cost, and eco-score if available.
@@ -225,13 +227,13 @@ class CrewAIAdapterForFinal:
         return agent, task_description
 
     def run(self, itinerary: Dict[str, Any], transport_options: Dict[str, Any], metrics: Dict[str, Any], gates: Dict[str, Any],
-            requirements: Dict[str, Any], **kwargs) -> Dict[str, Any]:
+            requirements: Dict[str, Any], explanation : Dict[str, Any],**kwargs) -> Dict[str, Any]:
         """
         Runs the single CrewAI agent to generate the final summary.
         """
         if Crew is not None:
             try:
-                agent, task_description = self._build_agent_spec(requirements, itinerary, transport_options)
+                agent, task_description = self._build_agent_spec(requirements, itinerary, transport_options, explanation)
 
                 # The Task uses the comprehensive task_description as its prompt
                 summary_task = Task(
