@@ -9,7 +9,7 @@ import json
 import time
 import os
 
-from planner_agent.tools.config import LLM_MODEL
+from planner_agent.tools.config import LLM_MODEL, OPENAI_API_KEY
 from planner_agent.tools.helper import impute_price
 
 logger = logging.getLogger()
@@ -116,7 +116,8 @@ class CrewAIAdapter:
             "Minimize changes: prefer removals of expensive or distant items first, then replacements using the shortlist."
         )
         LLM_CONFIG = {
-            "api_key": os.getenv("OPENAI_API_KEY"),
+            "api_key": OPENAI_API_KEY,
+            "request_timeout": 60,
             "temperature": 0.2,
             # This is the standard way to force JSON output using LiteLLM/OpenAI config
             "response_format": {"type": "json_object"}

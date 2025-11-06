@@ -18,7 +18,7 @@ import json
 import time
 from typing import Dict, Any, Optional, List
 
-from planner_agent.tools.config import LLM_MODEL
+from planner_agent.tools.config import LLM_MODEL, OPENAI_API_KEY
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -127,7 +127,8 @@ class CrewAIAdapterForFinal:
             "max_tokens": 2048  # Allow for a larger HTML output
         }"""
         LLM_CONFIG = {
-            "api_key": os.getenv("OPENAI_API_KEY"),
+            "api_key": OPENAI_API_KEY,
+            "request_timeout": 60,
             "temperature": 0.2,
             # This is the standard way to force JSON output using LiteLLM/OpenAI config
             "response_format": {"type": "json_object"}
