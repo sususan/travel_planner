@@ -11,3 +11,4 @@ Summarizer_Agent_Folder = "summarizer_agent"
 TRANSPORT_ADAPTERAPI_ENDPOINT = "https://zjjh6gp7x9.execute-api.ap-southeast-1.amazonaws.com/prod"
 Final_ADAPTERAPI_ENDPOINT = "https://s0k25s7kqk.execute-api.ap-southeast-1.amazonaws.com/prod"
 X_API_Key = "ELyVlpoxgyHVV7MgqH8waT2Byab36oY7rxjZ5CSd" #os.getenv("X-API-Key")
+TransportAgentARN = 'arn:aws:lambda:ap-southeast-1:641675857341:function:transport-queue-handler-prod'

@@ -7,6 +7,7 @@ import time
 from typing import Dict, Any
 
 import requests
+import boto3
 
 from planner_agent.agent.transport import TransportAdapter, attach_transport_options
 from planner_agent.planner_core.core import score_candidates, shortlist, assign_to_days, explain
@@ -108,15 +109,20 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
     transport_options= {}
     update_json_data(bucket_name,Transport_Agent_Folder + "/" + fileName, payload)
     # Call Transport Agent
-    response = call_transport_agent_api(bucket_name, fileName, "Planner Agent", session)
-    if len(response) != 0:
+    #response = call_transport_agent_api(bucket_name, fileName, "Planner Agent", session)
+    response_data = lambda_synchronous_call(TransportAgentARN, bucket_name, fileName, "Planner Agent", session)
+    if len(response_data) != 0:
+        transport_options = response_data.get("transport", {})
+        itinerary = attach_transport_options(itinerary, transport_options)
+        payload["itinerary"] = itinerary
+    """if len(response) != 0:
         response_data = response.json() if response else {}
         logger.info(f"Transport Agent response: {response_data}")
         statusCode = response.status_code
         transport_options= {}
         if statusCode == 200 or statusCode == 202:
             transport_options = response_data.get("transport", {})
-            itinerary = attach_transport_options(itinerary, transport_options)
+            itinerary = attach_transport_options(itinerary, transport_options)"""
     # Stage 3: Validation & possible repair loop
     gates=  validate_itinerary(itinerary, metrics, payload)
     planner_agent = PlannerAgent(crew_adapter=PLANNER_CREW_ADAPTER)
@@ -136,8 +142,14 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
         payload["itinerary"] = new_it
         update_json_data(bucket_name, Transport_Agent_Folder + "/" + fileName, payload)
         # Call Transport Agent
-        response = call_transport_agent_api(bucket_name, fileName, "Planner Agent", session)
-        if len(response) != 0:
+        #response = call_transport_agent_api(bucket_name, fileName, "Planner Agent", session)
+        response_data = lambda_synchronous_call(TransportAgentARN, bucket_name, fileName, "Planner Agent", session)
+        if len(response_data) != 0:
+            transport_options = response_data.get("transport", {})
+            new_it = attach_transport_options(itinerary, transport_options)
+            itinerary = new_it
+            payload["itinerary"]= itinerary
+        """if len(response) != 0:
             response_data = response.json() if response else {}
             logger.info(f"Transport Agent response: {response_data}")
             statusCode = response.status_code
@@ -145,7 +157,7 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
                 transport_options = response_data.get("transport", {})
                 new_it = attach_transport_options(itinerary, transport_options)
                 itinerary = new_it
-                payload["itinerary"] = itinerary
+                payload["itinerary"] = itinerary"""
 
         metrics = new_metrics or metrics
         gates = validate_itinerary(itinerary, metrics, payload)
@@ -197,6 +209,7 @@ def call_transport_agent_api(bucket_name: str, key: str, sender_agent: str, sess
         logging.error(f"Transport Agent API call failed: {e}")
         return {}
 
+
 def call_transport_final_api(bucket_name: str, key: str, sender_agent: str, session: str):
     """
     Makes an API call to the specified endpoint using the provided data.
@@ -211,14 +224,46 @@ def call_transport_final_api(bucket_name: str, key: str, sender_agent: str, sess
     headers = {"Content-Type": "application/json"}
     payload = {
         "bucket_name": bucket_name,
-        "key": Summarizer_Agent_Folder + "/"+ key,
+        "key": Summarizer_Agent_Folder + "/" + key,
         "sender_agent": sender_agent,
         "session": session
     }
     try:
         response = requests.post(url, json=payload, headers=headers)
-        #response.raise_for_status()  # Raise an exception for HTTP errors
+        # response.raise_for_status()  # Raise an exception for HTTP errors
         return response
     except requests.RequestException as e:
         logging.error(f"Final Agent API call failed: {e}")
         return {}
+
+
+def lambda_synchronous_call(function_name: str, bucket_name: str, key: str, sender_agent: str, session: str) -> Dict[str, Any]:
+    payload = {
+        "bucket_name": bucket_name,
+        "key": Summarizer_Agent_Folder + "/" + key,
+        "sender_agent": sender_agent,
+        "session": session
+    }
+    logger.info(f"Invoking Lambda function {function_name} with payload: {payload}")
+    """
+    Invokes an AWS Lambda function synchronously.
+
+    :param function_name: Name of the Lambda function to invoke
+    :param payload: Payload dictionary to pass to the Lambda function
+    :return: Response from the Lambda function as a dictionary
+    """
+    client = boto3.client('lambda')
+    try:
+        # Call the Lambda function
+        response = client.invoke(
+            FunctionName=function_name,
+            InvocationType='RequestResponse',
+            Payload=json.dumps(payload)
+        )
+        # Read and parse the response payload
+        response_payload = json.loads(response['Payload'].read().decode('utf-8'))
+        logger.info(f"Lambda response payload: {response_payload}")
+        return response_payload
+    except Exception as e:
+        logging.error(f"Lambda invocation failed: {e}")
+        return {"error": str(e)}
