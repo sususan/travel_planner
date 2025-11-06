@@ -173,9 +173,12 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
     # Upload to Summarizer Agent bucket
     update_json_data(bucket_name, Summarizer_Agent_Folder + "/" + fileName, payload)
     # Call summarizer
-    #return sumarrizer(payload)
+    logger.info("Calling Summarizer Agent")
+    summarize = sumarrizer(payload)
+    logger.info(f"Summarizer Agent returned payload: {summarize}")
+    return summarize
 
-    return {
+    """return {
         # "scored": scored,
         # "shortlist": sl,
         #"itinerary": itinerary,
@@ -184,7 +187,7 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
         "explanation": explanation,
         "planner_iterations": iterations,
         # "final_output": final_payload
-    }
+    }"""
     #return final_payload
 
 def sumarrizer(payload: dict):
