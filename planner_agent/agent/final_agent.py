@@ -126,7 +126,11 @@ class CrewAIAdapterForFinal:
             "response_format": {"type": "json_object"},
             "max_tokens": 2048  # Allow for a larger HTML output
         }"""
-
+        LLM_CONFIG = {
+            "temperature": 0.2,
+            # This is the standard way to force JSON output using LiteLLM/OpenAI config
+            "response_format": {"type": "json_object"}
+        }
         # Agent Definition
         if Agent is not None:
             agent = Agent(

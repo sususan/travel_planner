@@ -110,7 +110,7 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
     update_json_data(bucket_name,Transport_Agent_Folder + "/" + fileName, payload)
     # Call Transport Agent
     response = call_transport_agent_api(bucket_name, fileName, "Planner Agent", session)
-    response_data = lambda_synchronous_call(TransportAgentARN, bucket_name, fileName, "Planner Agent", session)
+    #response_data = lambda_synchronous_call(TransportAgentARN, bucket_name, fileName, "Planner Agent", session)
     """if len(response_data) != 0:
         transport_options = response_data.get("result", {})
         itinerary = attach_transport_options(itinerary, transport_options)
@@ -195,6 +195,7 @@ def sumarrizer(payload: dict):
         metrics = payload.get("metrics", {})
         explanation = payload.get("explanation", {})
         gates = payload.get("gates", {})
+        planner_agent = PlannerAgent(crew_adapter=PLANNER_CREW_ADAPTER)
         final_agent = CrewAIAdapterForFinal(crew_adapter=FINAL_CREW_ADAPTER)
         response = final_agent.run(requirements, itinerary, metrics, explanation, gates)
         logger.info("Final agent returned payload (kept in logs for debugging)")
