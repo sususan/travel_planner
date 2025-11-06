@@ -190,9 +190,9 @@ class CrewAIAdapterForFinal:
              Warmly summarize the trip (destination, style, duration).
            - **Day-by-Day Breakdown:**  
              For each day:
-             - Include time slots (Morning / Afternoon / Evening).
+             - Include ***time slots*** (Morning / Afternoon / Evening).
              - For each place:
-               - Show the **place name**, **address**, and **short summary** (15–30 words).  
+               - Show the **place name**,**short summary** (15–30 words) and  **address**
                - Add **tags or icons** (e.g., “Family-friendly”, “Stroller-friendly”, “Outdoor”).  
                - If available, include booking info or cost.
              - After each place (except the last of the day), include a Transport Section that summarizes the available transport options.
