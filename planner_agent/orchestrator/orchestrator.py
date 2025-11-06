@@ -199,7 +199,7 @@ def sumarrizer(payload: dict):
         explanation = payload.get("explanation", {})
         gates = payload.get("gates", {})
         final_agent = CrewAIAdapterForFinal()
-        response = final_agent.run(requirements, itinerary, metrics, explanation, gates)
+        response = final_agent.run(itinerary, metrics,  gates, requirements)
         logger.info("Final agent returned payload (kept in logs for debugging)")
 
         # Build human-readable text (includes explanation and gates)

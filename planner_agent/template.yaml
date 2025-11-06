@@ -31,6 +31,7 @@ Globals:
         S3_BUCKET: !Ref BucketName
         STAGE: !Ref StageName
         CREW_LLM_MODEL: gpt-4o-mini
+        OPENAI_API_KEY: OPENAI_API_KEY
 
 Resources:
   PlannerApi:
