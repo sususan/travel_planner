@@ -186,16 +186,16 @@ class CrewAIAdapterForFinal:
                - If available, include booking info or cost.
              - After each place (except the last of the day), include a Transport Section that summarizes the available transport options.
                 Use data from the TRANSPORT_OPTIONS JSON where from_place_id == current_place.place_id and to_place_id == next_place.place_id.
-             -Transport Selection Rules:
-                1. Primary Mode: Always select and display the transport mode with the shortest duration.            
-                2.Alternative Modes: Additionally, display up to two alternative modes only if they meet one of the following criteria:            
-                    -Significantly Cheaper: Cost is at least 30% lower than the Primary Mode.            
-                    -Eco-Friendly: The mode is "Walk" or "Bike" (considered the "greener" option).            
+             -Transport Selection Rules (Eco-Prioritized):
+                1.Mandatory Row 1 (Speed): The transport mode with the shortest duration must be the first row.
+                2.Mandatory Row 2 (Green/Value): The second row must be the most Eco-Friendly option (lowest carbon_kg) that is not 'ride' or 'taxi'. If a low-carbon option is also significantly cheaper (cost is at least 30% lower than the fastest mode), it should be explicitly noted as the "Best Value & Greenest" option in the Route Summary.
+                3.Maximum Rows: Display a maximum of three distinct transport modes. 
              -Display Format for Each Mode:            
-                Mode (e.g., “Walk”, “Bus”, “Taxi”, “MRT”)            
-                Duration (minutes)            
-                Approximate cost (SGD)            
-                Route summary (1 concise sentence explaining the route/line/vehicle).
+                Mode (e.g., “Walk”, “Bus”, “MRT”)
+                Duration (minutes)
+                Approximate cost (SGD)
+                Carbon Footprint (kg)
+                Route Summary (1 concise sentence explaining the route and its key feature: Fastest, Greenest, or Cheapest).
              Prefer the shortest duration mode, but display alternatives if they are notably cheaper or greener.
            - **Final Section – Action Items (3–5):**  
              Present a short checklist like:
