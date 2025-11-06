@@ -18,6 +18,8 @@ Parameters:
   ImageTag:
     Type: String
     Description: ECR Image tag
+  OPENAI_API_KEY:
+    Type: String
 
 Globals:
   Function:
@@ -31,6 +33,7 @@ Globals:
         S3_BUCKET: !Ref BucketName
         STAGE: !Ref StageName
         CREW_LLM_MODEL: gpt-4o-mini
+        OPENAI_API_KEY: !Ref OPENAI_API_KEY
 
 Resources:
   PlannerApi:

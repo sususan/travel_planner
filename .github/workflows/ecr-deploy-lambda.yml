@@ -17,6 +17,7 @@ env:
   API_NAME: planner-agent
   BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
   STAGE_NAME: prod
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
 jobs:
   build-and-deploy:
@@ -121,6 +122,7 @@ jobs:
           STAGE_NAME: ${{ env.STAGE_NAME }}
           ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
           ROLE_ARN: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/planner-agent-LambdaRole
+          OPENAI_API_KEY: ${{ env.OPENAI_API_KEY }}
         run: |
           set -euo pipefail
           # optional: print template path to validate it exists
@@ -146,7 +148,8 @@ jobs:
               BucketName=${BUCKET_NAME} \
               StageName=${STAGE_NAME} \
               LambdaExecutionRoleArn=${ROLE_ARN} \
-              ImageTag=${IMAGE_TAG}
+              ImageTag=${IMAGE_TAG}\
+              OPENAI_API_KEY=${OPENAI_API_KEY}
       
 
       - name: Wait for stack to stabilize (brief)
