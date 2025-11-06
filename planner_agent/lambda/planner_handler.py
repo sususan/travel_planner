@@ -16,7 +16,6 @@ def lambda_handler(event, context):
     logger.info("!! lambda_handler !!")
     session = ""
     planner_agent.tools.config.OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-    logger.info(planner_agent.tools.config.OPENAI_API_KEY)
     statusCode = 200
     response = ""
     try:

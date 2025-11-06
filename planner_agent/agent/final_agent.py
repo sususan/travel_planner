@@ -106,7 +106,7 @@ class CrewAIAdapterForFinal:
     It constructs a Crew with one Agent/Task to produce the final, rich summary.
     """
 
-    def __init__(self, verbose: bool = False, max_retries: int = 1):
+    def __init__(self, verbose: bool = True, max_retries: int = 1):
         self.verbose = verbose
         self.max_retries = max_retries
 
