@@ -204,7 +204,7 @@ class CrewAIAdapterForFinal:
              - Check local weather forecast  
              - Pack comfortable shoes  
              - Download offline maps  
-        4. Included the simaple explanation from the planner agent: {json.dumps(explanation, indent=2)} in each days.
+        4. Included the simaple explanation from the planner agent: {json.dumps(explanation, indent=2)}, especially why this pick.
         
         5. **Tone & Readability:**
            - Write concise, traveler-friendly sentences.
