@@ -36,7 +36,7 @@ def lambda_handler(event, context):
                 #payload = get_json_data(key)
                 fileName = key.split('/')[-1]
                 # Call orchestrator to plan itinerary
-                ret = plan_itinerary(bucket_name,key, session)
+                ret = plan_itinerary(bucket_name, key, session)
                 logger.info(f"Plan itinerary returned: {ret}")
                 statusCode = 200
                 response = {

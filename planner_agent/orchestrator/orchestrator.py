@@ -11,7 +11,7 @@ import boto3
 from planner_agent.agent.transport import TransportAdapter, attach_transport_options
 from planner_agent.planner_core.core import score_candidates, shortlist, assign_to_days, explain
 from planner_agent.tools.config import MAX_AGENT_ITERATIONS, Summarizer_Agent_Folder, Final_ADAPTERAPI_ENDPOINT, \
-    X_API_Key, Transport_Agent_Folder, TRANSPORT_ADAPTERAPI_ENDPOINT, TransportAgentARN
+    X_API_Key, Transport_Agent_Folder, TRANSPORT_ADAPTERAPI_ENDPOINT, TransportAgentARN, S3_BUCKET
 from planner_agent.tools.final_agent_helper import create_pdf_bytes
 from planner_agent.tools.helper import aggregate_budget_range, _lunch_minutes, _pace_minutes, _minutes_for_item
 from planner_agent.agent.planner_agent import PlannerAgent, CrewAIAdapter as PlannerCrewAdapter
@@ -84,7 +84,7 @@ def validate_itinerary(itinerary: Dict[str, Any], metrics: Dict[str, Any], paylo
     #gates["uncertainty_ratio"] = agg["uncertainty_ratio"]
     return gates
 
-def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
+def plan_itinerary(bucket_name: str, key: str, session: str) -> Dict[str, Any]:
     """
     Orchestrator main flow (agentic-ready).
     1) Heuristic Plan (core)
@@ -131,7 +131,7 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
     while (iterations == 0 or not gates.get("all_ok")) and iterations < MAX_AGENT_ITERATIONS:
         iterations += 1
         # Agentic repair: pass current itinerary, gates, metrics, shortlist
-        new_it, new_metrics = planner_agent.run(payload.get("requirements", {}), attractions, dining, itinerary, transport_options,
+        new_it, new_metrics = planner_agent.run(payload.get("requirements", {}), attractions, sl, dining, itinerary, transport_options,
                                                 metrics, gates)
         logger.info(f"Itinerary by Planner Agent: {new_it}")
         if not new_it:
@@ -334,7 +334,7 @@ if __name__ == "__main__":
     t0 = time.time()
     gates = []
     t0 = time.time()
-    bucket_name=""
+    bucket_name= S3_BUCKET
     #payload = get_json_data(bucket_name, key)
     #fileName = key.split('/')[-1]
     # Stage 1: Heuristic plan
