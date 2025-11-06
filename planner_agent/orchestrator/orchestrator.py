@@ -4,19 +4,22 @@
 import json
 import logging
 import time
+import traceback
 from typing import Dict, Any
 
 import requests
 import boto3
 
+from planner_agent.agent import final_agent
 from planner_agent.agent.transport import TransportAdapter, attach_transport_options
 from planner_agent.planner_core.core import score_candidates, shortlist, assign_to_days, explain
 from planner_agent.tools.config import MAX_AGENT_ITERATIONS, Summarizer_Agent_Folder, Final_ADAPTERAPI_ENDPOINT, \
     X_API_Key, Transport_Agent_Folder, TRANSPORT_ADAPTERAPI_ENDPOINT, TransportAgentARN
+from planner_agent.tools.final_agent_helper import create_pdf_bytes
 from planner_agent.tools.helper import aggregate_budget_range, _lunch_minutes, _pace_minutes, _minutes_for_item
 from planner_agent.agent.planner_agent import PlannerAgent, CrewAIAdapter as PlannerCrewAdapter
 from planner_agent.agent.final_agent import CrewAIAdapterForFinal, CrewAIAdapterForFinal
-from planner_agent.tools.s3io import update_json_data, get_json_data
+from planner_agent.tools.s3io import update_json_data, get_json_data, upload_pdf_to_s3
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -172,7 +175,9 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
     payload["explanation"] = explanation
     # Upload to Summarizer Agent bucket
     update_json_data(bucket_name, Summarizer_Agent_Folder + "/" + fileName, payload)
-    return {
+    # Call summarizer
+    return sumarrizer(payload)
+    """return {
         # "scored": scored,
         # "shortlist": sl,
         #"itinerary": itinerary,
@@ -181,9 +186,54 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
         "explanation": explanation,
         "planner_iterations": iterations,
         # "final_output": final_payload
-    }
+    }"""
     #return final_payload
 
+def sumarrizer(payload: dict):
+    try:
+        # Ask FinalAgent to run (keeps existing behavior)
+        requirements = payload.get("requirements", {})
+        itinerary = payload.get("itinerary", {})
+        metrics = payload.get("metrics", {})
+        explanation = payload.get("explanation", {})
+        gates = payload.get("gates", {})
+        response = final_agent.run(requirements, itinerary, metrics, explanation, gates)
+        logger.info("Final agent returned payload (kept in logs for debugging)")
+
+        # Build human-readable text (includes explanation and gates)
+        human_text = response.get("human_summary", "")
+        # Create PDF
+        pdf_bytes = create_pdf_bytes(human_text, title="Final Itinerary (Human-readable)")
+
+        # Upload PDF to S3 under final_outputs/
+        pdf_key = f"final_outputs/{fileName.rsplit('.', 1)[0]}.pdf"
+        try:
+            presigned_url = upload_pdf_to_s3(bucket_name, pdf_key, pdf_bytes)
+            logger.info(f"Uploaded PDF to s3://{bucket_name}/{pdf_key}")
+            return {
+                "statusCode": 200,
+                "message": human_text,
+                "s3_pdf_key": pdf_key,
+                "s3_pdf_presigned_url": presigned_url,
+                "session": session,
+                "summary": {
+                    "gates": gates,
+                    "explanation": explanation,
+                    "metrics": metrics
+                }
+            }
+        except Exception as e:
+            # fallback: return base64 PDF in response body
+            logger.exception(f"Error: {e}")
+            traceback.print_exc()
+            statusCode = 500
+            response = f"Summarizer Agent Failed with: {e}"
+
+    except Exception as e:
+        logger.exception(f"Error: {e}")
+        traceback.print_exc()
+        statusCode = 500
+        return {"error": f"PlSummarizeranner Agent Failed with: {e}"}
 
 def call_transport_agent_api(bucket_name: str, key: str, sender_agent: str, session: str):
     """
