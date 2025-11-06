@@ -190,7 +190,7 @@ def plan_itinerary(bucket_name: str,key: str, session: str) -> Dict[str, Any]:
     }"""
     #return final_payload
 
-def sumarrizer(payload: dict, filename: str):
+def sumarrizer(payload: dict, fileName: str):
     try:
         # Ask FinalAgent to run (keeps existing behavior)
         requirements = payload.get("requirements", {})
