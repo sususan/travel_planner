@@ -353,7 +353,7 @@ if __name__ == "__main__":
         transport_options = response_data.get("result", {})
         itinerary = attach_transport_options(itinerary, transport_options)
         payload["itinerary"] = itinerary"""
-    if len(response) != 0:
+    if response:
         response_data = response.json() if response else {}
         logger.info(f"Transport Agent response: {response_data}")
         statusCode = response.status_code
@@ -388,7 +388,7 @@ if __name__ == "__main__":
             new_it = attach_transport_options(itinerary, transport_options)
             itinerary = new_it
             payload["itinerary"]= itinerary"""
-        if len(response) != 0:
+        if response:
             response_data = response.json() if response else {}
             logger.info(f"Transport Agent response: {response_data}")
             statusCode = response.status_code

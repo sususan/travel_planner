@@ -8,7 +8,6 @@ import copy
 import json
 import time
 import os
-from planner_agent.agent.transport import attach_transport_options
 from planner_agent.tools.config import LLM_MODEL
 from planner_agent.tools.helper import impute_price
 
@@ -23,8 +22,6 @@ except Exception:
     Agent = None
     Task = None
     LLM = None
-
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "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")
 # planner_agent.py (inside CrewAIAdapter)
 
 def _parse_crew_output(raw: Any) -> Optional[Dict[str, Any]]:
@@ -118,7 +115,6 @@ class CrewAIAdapter:
             "Minimize changes: prefer removals of expensive or distant items first, then replacements using the shortlist."
         )
         LLM_CONFIG = {
-            "api_key": OPENAI_API_KEY,
             "temperature": 0.2,
             # This is the standard way to force JSON output using LiteLLM/OpenAI config
             "response_format": {"type": "json_object"}

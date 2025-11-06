@@ -30,8 +30,6 @@ except Exception:
     Crew = None
     Agent = None
     Task = None
-
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "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")
 # ------------------------
 # Helper for Fallback HTML (Simplified)
 # ------------------------
@@ -122,12 +120,12 @@ class CrewAIAdapterForFinal:
             "and ensuring all key logistical details are present. Your output must be production-ready HTML."
         )
 
-        LLM_CONFIG = {
+        """LLM_CONFIG = {
             "api_key": OPENAI_API_KEY,
             "temperature": 0.2,  # Use a slightly higher temperature for creative formatting
             "response_format": {"type": "json_object"},
             "max_tokens": 2048  # Allow for a larger HTML output
-        }
+        }"""
 
         # Agent Definition
         if Agent is not None:
