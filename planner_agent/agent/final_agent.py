@@ -30,6 +30,7 @@ except Exception:
     Task = None
 
 LLM_MODEL = os.getenv("CREW_LLM_MODEL", "gpt-4o-mini")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 
 # ------------------------
@@ -123,6 +124,7 @@ class CrewAIAdapterForFinal:
         )
 
         LLM_CONFIG = {
+            "api_key": OPENAI_API_KEY,
             "temperature": 0.2,  # Use a slightly higher temperature for creative formatting
             "response_format": {"type": "json_object"},
             "max_tokens": 2048  # Allow for a larger HTML output

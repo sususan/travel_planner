@@ -25,7 +25,7 @@ except Exception:
     LLM = None
 
 LLM_MODEL = os.getenv("CREW_LLM_MODEL", "gpt-4o-mini")
-
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # planner_agent.py (inside CrewAIAdapter)
 
@@ -120,6 +120,7 @@ class CrewAIAdapter:
             "Minimize changes: prefer removals of expensive or distant items first, then replacements using the shortlist."
         )
         LLM_CONFIG = {
+            "api_key": OPENAI_API_KEY,
             "temperature": 0.2,
             # This is the standard way to force JSON output using LiteLLM/OpenAI config
             "response_format": {"type": "json_object"}
