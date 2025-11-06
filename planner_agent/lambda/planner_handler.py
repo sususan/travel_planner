@@ -19,7 +19,10 @@ def lambda_handler(event, context):
     response = ""
     try:
         parsed_json = None
-        json_input = event.get("body", "").strip("")
+        if not isinstance(event, dict):
+            json_input = json.loads(event)
+        else:
+            json_input = event.get("body", "").strip("")
         logger.info(f"JSON input: {json_input}")
         if json_input:
             parsed_json = json.loads(json_input)
