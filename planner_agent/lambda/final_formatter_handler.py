@@ -58,7 +58,7 @@ def lambda_handler(event, context):
                 # Build human-readable text (includes explanation and gates)
                 human_text = response.get("human_summary", "")
                 # Create PDF
-                pdf_bytes = create_pdf_bytes(human_text, title="Final Itinerary (Human-readable)")
+                pdf_bytes = create_pdf_bytes(human_text, title="Your Complete Trip Guide")
 
                 # Upload PDF to S3 under final_outputs/
                 pdf_key = f"final_outputs/{fileName.rsplit('.',1)[0]}.pdf"

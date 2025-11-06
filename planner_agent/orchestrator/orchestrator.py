@@ -205,7 +205,7 @@ def sumarrizer(payload: dict, transport_options: dict, bucket_name: str, fileNam
         # Build human-readable text (includes explanation and gates)
         human_text = response.get("human_summary", "")
         # Create PDF
-        pdf_bytes = create_pdf_bytes_plain_from_html(human_text, title="Final Itinerary (Human-readable)") #create_pdf_bytes(human_text, title="Final Itinerary (Human-readable)")
+        pdf_bytes = create_pdf_bytes_plain_from_html(human_text, title="Your Complete Trip Guide") #create_pdf_bytes(human_text, title="Final Itinerary (Human-readable)")
 
         # Upload PDF to S3 under final_outputs/
         pdf_key = f"final_outputs/{fileName.rsplit('.', 1)[0]}.pdf"

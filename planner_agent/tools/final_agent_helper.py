@@ -4,8 +4,11 @@ from datetime import datetime
 
 from bs4 import BeautifulSoup
 from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+
 
 def create_pdf_bytes_plain_from_html(html, title="Itinerary Export"):
     # strip tags
@@ -13,7 +16,7 @@ def create_pdf_bytes_plain_from_html(html, title="Itinerary Export"):
     text = soup.get_text("\n")  # join with newlines for <p>, <br>, etc.
 
     # then reuse your existing function or embed printing logic
-    return create_pdf_bytes(text, title=title)
+    return create_pdf_bytes_flowable(text, title=title)
 
 def create_pdf_bytes(text, title="Itinerary Export"):
     """
@@ -76,5 +79,43 @@ def create_pdf_bytes(text, title="Itinerary Export"):
 
     c.drawText(text_object)
     c.save()
+    buffer.seek(0)
+    return buffer.read()
+
+def create_pdf_bytes_flowable(text, title="Itinerary Export"):
+    # 1. Setup the document template and buffer
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        leftMargin=0.75 * inch,
+        rightMargin=0.75 * inch,
+        topMargin=0.75 * inch,
+        bottomMargin=0.75 * inch
+    )
+
+    styles = getSampleStyleSheet()
+    story = []
+
+    # 2. Add Title (using a large bold style)
+    title_style = styles['Heading1']
+    story.append(Paragraph(title, title_style))
+    story.append(Spacer(1, 0.25 * inch))
+
+    # 3. Add Content (split by true paragraph breaks - '\n\n')
+    body_style = styles['Normal']
+    body_style.fontSize = 10
+    body_style.leading = 12  # Line spacing (equivalent to your 'leading')
+
+    for paragraph in text.split("\n\n"):
+        if paragraph.strip():
+            # Paragraph automatically handles word wrapping based on doc width
+            p = Paragraph(paragraph.strip(), body_style)
+            story.append(p)
+            # Add small vertical space between paragraphs
+            story.append(Spacer(1, 0.1 * inch))
+
+            # 4. Build the PDF
+    doc.build(story)
     buffer.seek(0)
     return buffer.read()

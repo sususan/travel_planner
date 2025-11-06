@@ -191,27 +191,27 @@ class CrewAIAdapterForFinal:
                 1.Mandatory Row 1 (Speed): The transport mode with the shortest duration must be the first row.
                 2.Mandatory Row 2 (Green/Value): The second row must be the most Eco-Friendly option (lowest carbon_kg) that is not 'ride' or 'taxi'. If a low-carbon option is also significantly cheaper (cost is at least 30% lower than the fastest mode), it should be explicitly noted as the "Best Value & Greenest" option in the Route Summary.
                 3.Maximum Rows: Display a maximum of three distinct transport modes. 
-             -Display Format for Each Mode:            
-                Mode (e.g., “Walk”, “Bus”, “MRT”)
-                Duration (minutes)
-                Approximate cost (SGD)
-                Carbon Footprint (kg)
-                Route Summary (1 concise sentence explaining the route and its key feature: Fastest, Greenest, or Cheapest).
-             Prefer the shortest duration mode, but display alternatives if they are notably cheaper or greener.
+                 -Display Format for Each Mode:            
+                    Mode (e.g., “Walk”, “Bus”, “MRT”)
+                    Duration (minutes)
+                    Approximate cost (SGD)
+                    Carbon Footprint (kg)
+                    Route Summary (1 concise sentence explaining the route and its key feature: Fastest, Greenest, or Cheapest).
+                Prefer the shortest duration mode, but display alternatives if they are notably cheaper or greener.
+            -Included the simaple explanation from the planner agent: {json.dumps(explanation, indent=2)}
            - **Final Section – Action Items (3–5):**  
              Present a short checklist like:
              - Confirm ticket bookings  
              - Check local weather forecast  
              - Pack comfortable shoes  
              - Download offline maps  
-        4. Included the simaple explanation from the planner agent: {json.dumps(explanation, indent=2)}, especially why this pick.
         
-        5. **Tone & Readability:**
+        4. **Tone & Readability:**
            - Write concise, traveler-friendly sentences.
            - Use active voice and optimistic phrasing (“Enjoy a relaxing morning at…”, “Hop on a quick MRT ride…”).
            - Avoid repeating place names excessively.
         
-        6. **Technical Requirements:**
+        5. **Technical Requirements:**
            - Wrap each place block in a container like `<div class="place" data-place-id="...">`
            - For each transport option, use `<div class="transport" data-from="..." data-to="...">`
            - Include an overall `<section class="summary">` at the end summarizing total distance, estimated cost, and eco-score if available.
