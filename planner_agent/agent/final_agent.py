@@ -119,13 +119,6 @@ class CrewAIAdapterForFinal:
             "You are a professional Travel Document Editor, known for clear communication, elegant formatting, "
             "and ensuring all key logistical details are present. Your output must be production-ready HTML."
         )
-
-        """LLM_CONFIG = {
-            "api_key": OPENAI_API_KEY,
-            "temperature": 0.2,  # Use a slightly higher temperature for creative formatting
-            "response_format": {"type": "json_object"},
-            "max_tokens": 2048  # Allow for a larger HTML output
-        }"""
         LLM_CONFIG = {
             "api_key": OPENAI_API_KEY,
             "request_timeout": 60,
