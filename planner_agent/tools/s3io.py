@@ -34,7 +34,7 @@ def upload_pdf_to_s3(bucket_name, key, pdf_bytes):
     Upload bytes to S3 and return a presigned URL (1 hour).
     """
     s3 = boto3.client("s3")
-    s3.put_object(Bucket=bucket_name, Key=key, Body=pdf_bytes, ContentType="application/pdf")
+    s3.put_object(Bucket=bucket_name, Key="summarizer_agent/pdf/"+key, Body=pdf_bytes, ContentType="application/pdf")
     url = s3.generate_presigned_url(
         "get_object",
         Params={"Bucket": bucket_name, "Key": key},
