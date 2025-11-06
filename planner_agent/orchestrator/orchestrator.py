@@ -12,7 +12,7 @@ import boto3
 from planner_agent.agent.transport import TransportAdapter, attach_transport_options
 from planner_agent.planner_core.core import score_candidates, shortlist, assign_to_days, explain
 from planner_agent.tools.config import MAX_AGENT_ITERATIONS, Summarizer_Agent_Folder, Final_ADAPTERAPI_ENDPOINT, \
-    X_API_Key, Transport_Agent_Folder, TRANSPORT_ADAPTERAPI_ENDPOINT
+    X_API_Key, Transport_Agent_Folder, TRANSPORT_ADAPTERAPI_ENDPOINT, TransportAgentARN
 from planner_agent.tools.helper import aggregate_budget_range, _lunch_minutes, _pace_minutes, _minutes_for_item
 from planner_agent.agent.planner_agent import PlannerAgent, CrewAIAdapter as PlannerCrewAdapter
 from planner_agent.agent.final_agent import CrewAIAdapterForFinal, CrewAIAdapterForFinal
