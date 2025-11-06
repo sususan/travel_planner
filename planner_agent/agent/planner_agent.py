@@ -123,7 +123,7 @@ class CrewAIAdapter:
             "response_format": {"type": "json_object"}
         }
         BEDROCK_MODEL = "anthropic.claude-3-sonnet-20240229-v1:0"
-        LM_CONFIG = {
+        LLM_CONFIG = {
             # LiteLLM uses the 'model' parameter to specify the full provider and model name.
             # The format is typically "<provider>/<model_name>"
             "model": f"bedrock/{BEDROCK_MODEL}",
