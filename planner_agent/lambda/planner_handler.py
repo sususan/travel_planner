@@ -20,12 +20,12 @@ def lambda_handler(event, context):
     try:
         parsed_json = None
         if not isinstance(event, dict):
-            json_input = json.loads(event)
-        else:
             json_input = event.get("body", "").strip("")
-        logger.info(f"JSON input: {json_input}")
-        if json_input:
             parsed_json = json.loads(json_input)
+        else:
+            parsed_json = event
+
+        if parsed_json is not None:
             bucket_name = parsed_json.get("bucket_name")
             key = parsed_json.get("key")
             sender_agent = parsed_json.get("sender_agent")
