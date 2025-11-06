@@ -18,7 +18,7 @@ import json
 import time
 from typing import Dict, Any, Optional, List
 
-from planner_agent.tools.config import LLM_MODEL, OPENAI_API_KEY
+from planner_agent.tools.config import LLM_MODEL
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -31,6 +31,7 @@ except Exception:
     Agent = None
     Task = None
 
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "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")
 # ------------------------
 # Helper for Fallback HTML (Simplified)
 # ------------------------

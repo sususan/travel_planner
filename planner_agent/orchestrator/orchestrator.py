@@ -240,7 +240,7 @@ def call_transport_final_api(bucket_name: str, key: str, sender_agent: str, sess
 def lambda_synchronous_call(function_name: str, bucket_name: str, key: str, sender_agent: str, session: str) -> Dict[str, Any]:
     payload = {
         "bucket_name": bucket_name,
-        "key": Summarizer_Agent_Folder + "/" + key,
+        "key": Transport_Agent_Folder + "/" + key,
         "sender_agent": sender_agent,
         "session": session
     }
