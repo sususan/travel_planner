@@ -123,7 +123,17 @@ class CrewAIAdapterForFinal:
             "api_key": OPENAI_API_KEY,
             "request_timeout": 60,
             "temperature": 0.2,
-            # This is the standard way to force JSON output using LiteLLM/OpenAI config
+            "response_format": {"type": "json_object"}
+        }
+
+        BEDROCK_MODEL = "anthropic.claude-3-sonnet-20240229-v1:0"
+
+        LM_CONFIG = {
+            # LiteLLM uses the 'model' parameter to specify the full provider and model name.
+            # The format is typically "<provider>/<model_name>"
+            "model": f"bedrock/{BEDROCK_MODEL}",
+            "request_timeout": 60,
+            "temperature": 0.2,
             "response_format": {"type": "json_object"}
         }
         # Agent Definition
