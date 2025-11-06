@@ -31,7 +31,7 @@ if __name__ == "__main__":
     # Call Transport Agent
     transport_options = {}
     response = call_transport_agent_api(S3_BUCKET, fileName, "Planner Agent", session)
-    if len(response) != 0:
+    if response:
         response_data = response.json() if response else {}
         print(f"Transport Agent response: {response_data}")
         statusCode = response.status_code
@@ -56,7 +56,7 @@ if __name__ == "__main__":
         payload["itinerary"] = new_it
         # Call Transport Agent
         response = call_transport_agent_api(S3_BUCKET, fileName, "Planner Agent", session)
-        if len(response) != 0:
+        if response:
             response_data = response.json() if response else {}
             print(f"Transport Agent response: {response_data}")
             statusCode = response.status_code
