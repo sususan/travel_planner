@@ -344,7 +344,7 @@ if __name__ == "__main__":
     scored = score_candidates(payload)
     sl = shortlist(payload, scored)
     itinerary, metrics = assign_to_days(payload, sl)
-    logger.info(f"Heuristic Itinerary: {itinerary}")
+    print(f"Heuristic Itinerary: {itinerary}")
     attractions = sl.get("attractions", {})
     dining = sl.get("dining", {})
     # Add itinerary to payload and upload to S3

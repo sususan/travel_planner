@@ -231,12 +231,6 @@ class CrewAIAdapterForFinal:
         - "audit_logs": array — short rationale entries (can be empty) for traceability.
         - "line_item_costs": array — line items used to compute budget (can be empty if not applicable).
 
-        --- BEHAVIORAL NOTES FOR THE AGENT ---
-        - The follow-up must be phrased exactly as a question/check-in — do not include suggestions or "recommended edits" in the notice.
-        - If multiple gates fail, combine succinctly. Example:
-          "This plan slightly exceeds your budget and may feel a bit packed — are you okay with proceeding as is?"
-        - Keep the notice short (≤ 2 sentences).
-
         --- OUTPUT CONSTRAINTS ---
         Produce a JSON object matching the 'EXPECTED_RESPONSE_SCHEMA' below. Do NOT include any text outside the JSON block.
 
