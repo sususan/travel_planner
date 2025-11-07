@@ -211,8 +211,8 @@ def sumarrizer(payload: dict, transport_options: dict, bucket_name: str, fileNam
                 "follow_up": follow_up,
                 "s3_pdf_key": pdf_key,
                 "s3_pdf_presigned_url": presigned_url,
-                "explanation": explanation,
-                "metrics": metrics
+                "gates": gates,
+                "explanation": explanation
             }
         except Exception as e:
             # fallback: return base64 PDF in response body
