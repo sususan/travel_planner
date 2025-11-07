@@ -160,6 +160,7 @@ class CrewAIAdapterForFinal:
 
         # Expected Output Schema for the final JSON wrapper
         expected_schema = {
+            "follow_up": "string (MUST be a complete HTML document including <head> and <body>, styled for mobile/desktop)",
             "human_summary": "string (MUST be a complete HTML document including <head> and <body>, styled for mobile/desktop)",
             "content_type": "html",
             "attachments": "array (empty array if no attachments needed)"
@@ -177,10 +178,10 @@ class CrewAIAdapterForFinal:
         FINAL ITINERARY (Validated): {json.dumps(itinerary, indent=2)}
         TRANSPORT OPTIONS (Optional): {json.dumps(transport_options, indent=2)}
         EXPLANATION (Optional): {json.dumps(explanation, indent=2)}
-        GATE_RESULTS (e.g. {{ "budget_ok": false, "coverage_ok": true, "pace_ok": true }}): {json.dumps(gates if 'gate_results' in globals() else {}, indent=2)}
-
+        GATE_RESULTS: {json.dumps(gates, indent=2)}
+        
         --- FOLLOW-UP POLICY (CONVERSATIONAL ONLY) ---
-        If **any validation gate** is not okay e.g. ("budget_ok": false, "coverage_ok": true, "pace_ok": true ), include a short, friendly follow-up message to the traveler at the very top of the HTML output.  
+        If GATE_RESULTS **all_ok** not okay, include a short, friendly follow-up message to the traveler at the very top of the HTML output.  
         This follow-up:
         - MUST NOT propose edits, repairs, or alternatives.
         - MUST be a single sentence (or at most two), conversational, and ask a confirmation-style question.
@@ -279,6 +280,7 @@ class CrewAIAdapterForFinal:
                                 "<html" in crew_resp.get("human_summary") or "<body" in crew_resp.get(
                             "human_summary")) else "text"
                     return {
+                        "follow_up": crew_resp.get("follow_up"),
                         "human_summary": crew_resp.get("human_summary"),
                         "content_type": content_type,
                         #"attachments": crew_resp.get("attachments", []) or []
