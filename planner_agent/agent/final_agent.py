@@ -178,6 +178,35 @@ class CrewAIAdapterForFinal:
         TRANSPORT OPTIONS (Optional): {json.dumps(transport_options, indent=2)}
         EXPLANATION (Optional): {json.dumps(explanation, indent=2)}
 
+        --- FOLLOW-UP ON FAILED GATES (NEW) ---
+        If ANY gate in the validation results is NOT OK, the agent MUST produce:
+        1. A machine-readable `follow_up` object in the output JSON containing:
+           - `failed_gates`: list of gate names that failed (e.g., ["budget_ok"])
+           - `summary`: 1–2 sentence plain language summary of why the gate failed
+           - `recommended_edits`: an ordered list (max 6) of concrete, auditable edits. Each edit must include:
+               - `id` (unique short id)
+               - `type` (one of: "swap_place", "remove_place", "replace_with_cheaper", "move_activity_time", "change_accommodation", "extend_budget", "shorten_trip", "suggest_alternative_date")
+               - `description` (1 line human readable)
+               - `estimated_cost_delta_sgd` (negative for savings)
+               - `estimated_carbon_delta_kg` (negative for carbon reduction)
+               - `impact_on_coverage` (low|medium|high)
+               - `audit_trace` (brief explanation: why this edit helps the failed gate)
+           - `estimated_total_savings_sgd` (sum of top recommended edits)
+           - `estimated_total_carbon_savings_kg`
+           - `confidence` (low|medium|high) — how confident the agent is about the estimates
+           - `next_actions` — up to 3 concrete options for the user (e.g., "Apply top edit", "Show cheaper alternative itinerary", "Request human planner review")
+        2. For the specific case of `budget_ok: false`, the agent MUST always propose at least three distinct repair strategies (presented as alternatives A/B/C) with numeric estimates:
+           - Alternative A — "Cheapest edits (minimize cost, may reduce attractions)": list of edits, total savings, coverage impact.
+           - Alternative B — "Balanced edits (reduce cost, preserve coverage)": list of edits, total savings, coverage impact.
+           - Alternative C — "Maintain coverage (increase budget or shift dates)": show required extra budget and rationale; if shifting dates is proposed, show potential savings by moving off-peak and any assumptions used.
+           Each alternative must include `estimated_cost_change_sgd`, `estimated_carbon_change_kg`, `places_added_or_removed`, and `short_explanation`.
+        3. The agent must present a **line-item cost table** (machine-readable array) showing which itinerary items contribute to the budget overrun and how each recommended edit changes that line item.
+        4. When recommending cheaper substitutions, prefer substitutes that:
+           - keep the same `cluster`/neighbourhood when possible
+           - preserve the user's `pace` and `accessibility` constraints
+           - are pedestrian or public-transport friendly (if user has eco preference)
+        5. If more than one gate fails, the agent should produce edits that *prioritize* fixing the highest severity gate first (order given by the `failed_gates` list). If edits conflict (e.g., reducing cost increases carbon), include a brief tradeoff sentence for each conflicting edit.
+
         --- STYLE AND FORMATTING RULES ---
         1. **Target Audience:** The end-user (traveler). Use a friendly, encouraging, and clear tone.
         2. **Layout:**  
@@ -191,39 +220,39 @@ class CrewAIAdapterForFinal:
              Warmly summarize the trip (destination, style, duration).
            - **Day-by-Day Breakdown:**  
              For each day:
-                - Include ***time slots*** (Morning / Afternoon / Evening) only do not include time.
+                - Include ***time slots*** (Morning / Afternoon / Evening) only — do not include specific hours.
              For each place show below:
-                -place name
-                -short summary in a simple paragraphed descriptions, you may add your own knowledge.
-                -address
-                - Include a **why this place pick** section from EXPLANATION JSON or you may use your own knowledge.
+                - place name
+                - short summary in a simple paragraphed description (you may add your own knowledge)
+                - address
+                - Include a **why this place was picked** section (prefer EXPLANATION JSON; if missing, use concise domain knowledge)
             - After each place (except the last of the day), include a Transport Section that summarizes the available transport options.
-                 -Use data from the TRANSPORT_OPTIONS JSON and FINAL ITINERARY JSON
-                 -For every 1st place block, always mention that from accommodation to place
-                 -For every 2nd place block, always mention that from place to destination place using only place id of TRANSPORT_OPTIONS JSON and FINAL ITINERARY JSON
-                 -If no transport options are available (place id mismatch), don't include random transport options just skip to include it.
-                 -Transport Selection Rules (Eco-Prioritized):
-                    1.Mandatory Row 1 (Speed): The transport mode with the shortest duration must be the first row.
-                    2.Mandatory Row 2 (Green/Value): The second row must be the most Eco-Friendly option (lowest carbon_kg) that is not 'ride' or 'taxi'. If a low-carbon option is also significantly cheaper (cost is at least 30% lower than the fastest mode), it should be explicitly noted as the "Best Value & Greenest" option in the Route Summary.
-                    3.Maximum Rows: Display a maximum of three distinct transport modes. 
-                     -Display Format for Each Mode:            
+                 - Use data from the TRANSPORT_OPTIONS JSON and FINAL ITINERARY JSON
+                 - For every 1st place block, always mention that from accommodation to place
+                 - For every 2nd place block, always mention that from place to destination place using only place id of TRANSPORT_OPTIONS JSON and FINAL ITINERARY JSON
+                 - If no transport options are available (place id mismatch), skip the transport block for that leg.
+                 - Transport Selection Rules (Eco-Prioritized):
+                    1. Mandatory Row 1 (Speed): The transport mode with the shortest duration must be the first row.
+                    2. Mandatory Row 2 (Green/Value): The second row must be the most Eco-Friendly option (lowest carbon_kg) that is not 'ride' or 'taxi'. If a low-carbon option is also significantly cheaper (cost is ≥30% lower than the fastest mode), mark it "Best Value & Greenest" in the Route Summary.
+                    3. Maximum Rows: Display up to three distinct transport modes.
+                     - Display Format for Each Mode:
                         Mode (e.g., “Walk”, “Bus”, “MRT”)
                         Duration (minutes)
                         Approximate cost (SGD)
                         Carbon Footprint (kg)
-                        Route Summary (1 concise sentence explaining the route and its key feature: Fastest, Greenest, or Cheapest).
+                        Route Summary (1 concise sentence: Fastest, Greenest, or Cheapest).
                     Prefer the shortest duration mode, but display alternatives if they are notably cheaper or greener.
-            
-            -Included the simaple plan overview from the planner agent: {json.dumps(explanation, indent=2)} 
+
+            - Include the simple plan overview from the planner agent: {json.dumps(explanation, indent=2)} 
                Estimated adult ticket spend  (e.g., ~ SGD 942.5)
-               Approx. travel distance (e.g.,  ~ 229.4 km.)
-               Accessible stops counted (e.g.,  14.)
+               Approx. travel distance (e.g., ~ 229.4 km)
+               Accessible stops counted (e.g., 14)
            - **Final Section – Action Items (3–5):**  
              Present a short checklist like:
              - Confirm ticket bookings 
              - Check local weather forecast  
              - Pack comfortable shoes  
-        
+
         4. ** Sample display format **
             - Title (e.g, Family Trip to Singapore (2025-06-01 to 2025-06-03))
             - Introduction
@@ -240,17 +269,24 @@ class CrewAIAdapterForFinal:
                     **Transport Options**
             - Plan Overview
             - Action Items
+
         5. **Tone & Readability:**
            - Write concise, traveler-friendly sentences.
            - Use active voice and optimistic phrasing (“Enjoy a relaxing morning at…”, “Hop on a quick MRT ride…”).
            - Avoid repeating place names excessively.
-        
+
         6. **Technical Requirements:**
            - Wrap each place block in a container like `<div class="place" data-place-id="...">`
            - For each transport option, use `<div class="transport" data-from="..." data-to="...">`
            - Include an overall `<section class="summary">` at the end summarizing total distance, estimated cost, and eco-score if available.
-           - Ensure all times are formatted as `HH:MM` 24-hour local time.
-           - Return the entire HTML document inside a single JSON object with the key `"human_summary"`.
+           - Ensure time fields (if present) are formatted as `HH:MM` 24-hour local time.
+           - **Output JSON contract additions (required):**
+               - `human_summary` (string): full HTML document (as described)
+               - `follow_up` (object): the machine-readable object described in the FOLLOW-UP section
+               - `line_item_costs` (array): detailed cost lines used to compute budget
+               - `audit_logs` (array): short rationale entries for any edits or substitutions (for traceability)
+           - Return the entire response as a single JSON object with the key `"human_summary"` for the HTML and the additional keys above.
+
         --- OUTPUT CONSTRAINTS ---
         Produce a JSON object matching the 'EXPECTED_RESPONSE_SCHEMA' below. Do NOT include any text outside the JSON block.
 

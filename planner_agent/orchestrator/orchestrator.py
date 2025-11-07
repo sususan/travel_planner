@@ -78,8 +78,8 @@ def validate_itinerary(itinerary: Dict[str, Any], metrics: Dict[str, Any], paylo
             break
 
     gates["all_ok"] = gates["budget_ok"] and gates["coverage_ok"] and gates["pace_ok"] # and not gates["uncertainty_escalate"]
-    gates["expected_total_spend_sgd"] = round(expected_total, 2)
-    gates["max_total_spend_sgd"] = round(max_total, 2)
+    gates["expected_spend_sgd"] = round(expected_total, 2)
+    gates["max_spend_sgd"] = round(max_total, 2)
     #gates["unknown_frac"] = agg["unknown_frac"]
     #gates["uncertainty_ratio"] = agg["uncertainty_ratio"]
     return gates
@@ -204,11 +204,13 @@ def sumarrizer(payload: dict, transport_options: dict, bucket_name: str, fileNam
 
         # Build human-readable text (includes explanation and gates)
         human_text = response.get("human_summary", "")
-        # Create PDF
-        pdf_bytes = create_pdf_bytes_plain_from_html(human_text, title="Your Complete Trip Guide") #create_pdf_bytes(human_text, title="Final Itinerary (Human-readable)")
+        pdf_key= ""
+        if gates["all_ok"]:
+            # Create PDF
+            pdf_bytes = create_pdf_bytes_plain_from_html(human_text, title="Your Complete Trip Guide") #create_pdf_bytes(human_text, title="Final Itinerary (Human-readable)")
 
-        # Upload PDF to S3 under final_outputs/
-        pdf_key = f"final_outputs/{fileName.rsplit('.', 1)[0]}.pdf"
+            # Upload PDF to S3 under final_outputs/
+            pdf_key = f"final_outputs/{fileName.rsplit('.', 1)[0]}.pdf"
         try:
             presigned_url = upload_pdf_to_s3(bucket_name, pdf_key, pdf_bytes)
             logger.info(f"Uploaded PDF to s3://{bucket_name}/{pdf_key}")

@@ -15,10 +15,12 @@ import re
 
 def create_pdf_bytes_plain_from_html(html, title):
     # strip tags
+    tags_to_ignore = ['strong']
     soup = BeautifulSoup(html, "html.parser")
-    text = soup.get_text("")  # join with newlines for <p>, <br>, etc.
-    text = re.sub(r'[ \t\r\f\v]+', ' ', text)
-    text = re.sub(r'\n+', '\n', text)
+    text = soup.get_text
+    text = soup.get_text("\n")  # join with newlines for <p>, <br>, etc.
+    #text = re.sub(r'[ \t\r\f\v]+', ' ', text)
+    #text = re.sub(r'\n+', '\n', text)
     # then reuse your existing function or embed printing logic
     return create_pdf_bytes_flowable_styled(text, title=title)
 
@@ -81,7 +83,7 @@ def create_pdf_bytes_flowable_styled(text, title):
 
         if not stripped_line:
             # Use small spacer for paragraph break
-            story.append(Spacer(1, 0.05 * inch))
+            #story.append(Spacer(1, 0.05 * inch))
             continue
 
         # --- Pattern Matching Logic ---
@@ -93,7 +95,9 @@ def create_pdf_bytes_flowable_styled(text, title):
         # 2. Activity Header (Starts with time, e.g., '10:00 - Gardens by the Bay')
         # Use regex to find time format HH:MM at the start
         # The line is formatted as "Time Activity Name"
-        if re.match(r'^\d{1,2}:\d{2}', stripped_line):
+        #if re.match(r'^\d{1,2}:\d{2}', stripped_line):
+        if any(stripped_line.startswith(p) for p in
+               ['Morning:', 'Lunch:', "Afternoon:"]):
             # Applying HTML formatting to bold the time part (if desired)
             # Find the index of the first space or '-'
             match = re.search(r'[\s-]', stripped_line)
