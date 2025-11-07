@@ -37,7 +37,7 @@ def upload_pdf_to_s3(bucket_name, key, pdf_bytes):
     s3.put_object(Bucket=bucket_name, Key="summarizer_agent/pdf/"+key, Body=pdf_bytes, ContentType="application/pdf")
     url = s3.generate_presigned_url(
         "get_object",
-        Params={"Bucket": bucket_name, "Key": key},
+        Params={"Bucket": bucket_name, "Key": "summarizer_agent/pdf/"+key},
         ExpiresIn=3600
     )
     return url
