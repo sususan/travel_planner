@@ -205,6 +205,7 @@ def sumarrizer(payload: dict, transport_options: dict, bucket_name: str, fileNam
 
         # Build human-readable text (includes explanation and gates)
         human_text = response.get("human_summary", "")
+        follow_up = response.get("follow_up", "")
         presigned_url= ""
         #if gates["all_ok"] == 'true':
         # Create PDF
@@ -217,6 +218,7 @@ def sumarrizer(payload: dict, transport_options: dict, bucket_name: str, fileNam
         try:
             return {
                 "statusCode": 200,
+                "follow_up": follow_up,
                 "message": human_text,
                 "s3_pdf_key": pdf_key,
                 "s3_pdf_presigned_url": presigned_url,
@@ -224,7 +226,7 @@ def sumarrizer(payload: dict, transport_options: dict, bucket_name: str, fileNam
                 "summary": {
                     "gates": gates,
                     "explanation": explanation,
-                    "metrics": metrics
+                    "metrics": metrics.get("_agent_review")
                 }
             }
         except Exception as e:
