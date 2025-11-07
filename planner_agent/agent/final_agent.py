@@ -229,7 +229,7 @@ class CrewAIAdapterForFinal:
             - Title (e.g, Family Trip to Singapore (2025-06-01 to 2025-06-03))
             - Introduction
               **hierarchical structure**
-              - Day 1: 2024-06-01
+              - Day 1:  (e.g, 2024-06-01)
                 Morning:
                     **Places**
                     **Transport Options**
