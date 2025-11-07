@@ -688,8 +688,8 @@ def shortlist(payload: dict, scored: Dict[str, dict]) -> Dict[str, List[dict]]:
         dur = int(x.get("_est_minutes", 60))
         if selected_time + dur > remaining_minutes_for_attractions:
             continue
-        if running_cost + float(x.get("_group_est_price", 0.0) or 0.0) > budget_total:
-            continue
+        #if running_cost + float(x.get("_group_est_price", 0.0) or 0.0) > budget_total:
+            #continue
 
         terms = set(map(str.lower, (x.get("terms") or [])))
         adds_new = bool((terms - covered_interest_terms) & interests) if interests else True
@@ -715,8 +715,8 @@ def shortlist(payload: dict, scored: Dict[str, dict]) -> Dict[str, List[dict]]:
             dur = int(x.get("_est_minutes", 60))
             if selected_time + dur > remaining_minutes_for_attractions:
                 continue
-            if running_cost > budget_total:
-                continue
+            #if running_cost > budget_total:
+                #continue
             selected.append(x)
             selected_time += dur
             time_by_type[((x.get("type") or "") or "").lower()] += dur
@@ -878,7 +878,7 @@ def assign_to_daysBak(payload: dict, shortlist_out: Dict[str, List[dict]]) -> Tu
 
     metrics = {
         "days": days,
-        "estimated_adult_ticket_spend_sgd": round(total_tickets_cost, 2),
+        "estimated_spend_sgd": round(total_tickets_cost, 2),
         "approx_distance_km": round(total_distance_km, 1),
         "interest_terms_covered": sorted(list(all_interest_terms))[:40],  # trim for readability
         "accessible_stops": accessible_hits,
@@ -1091,7 +1091,7 @@ def assign_to_days(payload: dict, shortlist_out: Dict[str, List[dict]]) -> Tuple
 
     metrics = {
         "days": days,
-        "estimated_adult_ticket_spend_sgd": round(total_tickets_cost, 2),
+        "estimated_spend_sgd": round(total_tickets_cost, 2),
         "approx_distance_km": round(total_distance_km, 1),
         "interest_terms_covered": sorted(list(all_interest_terms))[:40],
         "accessible_stops": accessible_hits,

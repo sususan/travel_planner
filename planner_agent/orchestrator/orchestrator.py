@@ -417,5 +417,6 @@ if __name__ == "__main__":
     payload["explanation"] = explanation
     # Upload to Summarizer Agent bucket
     # Call summarizer
+    print(payload)
     print(sumarrizer(payload, transport_options,bucket_name , fileName, session))
-    update_json_data(bucket_name, Summarizer_Agent_Folder + "/" + fileName, payload)
+    #update_json_data(bucket_name, Summarizer_Agent_Folder + "/" + fileName, payload)

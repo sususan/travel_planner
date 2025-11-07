@@ -99,21 +99,51 @@ class CrewAIAdapter:
         ### FIXED: provide expected_output as a dict (not a plain string).
         """
         GOAL = (
-            "Repair the provided itinerary so it meets the validation gates (budget, pace/day, interest coverage, and uncertainty thresholds). "
-            "Swap or remove items from the itinerary as needed to satisfy the gates."
-            "CRITICAL RULE: Lunch stop validation now has TWO conditions for replacement: "
-            "1) If the lunch item's **geo_cluster_id does NOT match** the cluster ID of the day's attractions, "
-            "OR 2) If the lunch stop is determined to be too far (transport gate violation) from its preceding or succeeding attractions. "
-            "If EITHER condition is true, you MUST remove the existing lunch item and replace it with an option from the 'AVAILABLE SWAP CANDIDATES DINING' list that satisfies BOTH cluster and proximity."
-             "Return a JSON object with keys: itinerary, metrics, edits, status, notes. "
-            "If not fully solvable, return a best-effort plan and clearly mark unsatisfied gates and reasons."
+            "Repair the provided itinerary so it meets all validation gates "
+            "(budget, pace/day, interest coverage, transport, and uncertainty thresholds). "
+            "You must swap or remove items from the itinerary as needed to satisfy these gates, "
+            "but you are NEVER allowed to invent or hallucinate new places. "
+            "All replacements or insertions MUST come strictly from the provided candidate lists: "
+            "'AVAILABLE SWAP CANDIDATES ATTRACTIONS' and 'AVAILABLE SWAP CANDIDATES DINING'. "
+
+            "HARD DAILY STRUCTURE RULES: "
+            "Every day must contain at least one Morning place, one Lunch stop, and one Afternoon place. "
+            "If any slot is missing, retrieve a replacement from the appropriate candidate pool: "
+            "- Use 'AVAILABLE SWAP CANDIDATES DINING' for Lunch. "
+            "- Use 'AVAILABLE SWAP CANDIDATES ATTRACTIONS' for Morning and Afternoon. "
+            "When selecting, always prefer candidates that: "
+            "(1) belong to the same geo_cluster_id as the other places that day, "
+            "(2) align with the user's stated interests and preferences, "
+            "(3) are not already used anywhere else in the itinerary (unique place_id), and "
+            "(4) do not violate the transport or accessibility gates. "
+
+            "CRITICAL RULE (Lunch replacement): "
+            "A lunch stop must be replaced if either of these conditions are true: "
+            "1) its geo_cluster_id does NOT match the cluster ID of the day's attractions, OR "
+            "2) it is too far from its preceding or succeeding attractions (transport gate violation). "
+            "In that case, remove it and choose a substitute ONLY from 'AVAILABLE SWAP CANDIDATES DINING' "
+            "that satisfies both cluster and proximity rules. "
+
+            "When repairing, minimize disruption: make the smallest number of edits necessary. "
+            "Prefer replacing or adding a single item within the same cluster rather than reshuffling full days. "
+            "Always document every edit in the 'edits' array with: the reason, original and new place_id, "
+            "estimated cost delta (SGD), and a short one-line audit rationale. "
+
+            "Return a JSON object with keys: itinerary, metrics, edits, status, and notes. "
+            "If a complete repair is not possible due to lack of matching candidates, "
+            "return a best-effort plan using the closest available cluster match and clearly mark unsatisfied gates and reasons."
         )
 
         BACKSTORY = (
             "You are an experienced travel operations engineer and itinerary optimizer. "
-            "You prefer conservative, verifiable edits that reduce cost, travel time, or uncertainty. "
-            "Always include a short rationale and numeric impact estimate for each edit. "
-            "Minimize changes: prefer removals of expensive or distant items first, then replacements using the shortlist."
+            "You make careful, traceable edits that maintain user intent and comfort. "
+            "You NEVER invent new locations; every addition or replacement must come from provided candidate lists only. "
+            "You always prioritize user preferences (interests, pace, dietary, accessibility) "
+            "and keep places geographically coherent by cluster. "
+            "You favor conservative, low-risk edits that clearly improve cost, travel time, or coverage metrics. "
+            "When missing slots are filled, you choose replacements that fit naturally in the route and cluster. "
+            "All changes must be auditable with brief rationale and numeric impact. "
+            "If uncertain, choose the safer, more verifiable option and document the assumption in 'notes'."
         )
         LLM_CONFIG = {
             "api_key": OPENAI_API_KEY,
@@ -347,26 +377,14 @@ class PlannerAgent:
         """
         mode = "REVIEW_ONLY" if review_only else "REPAIR"
 
+        # 1. Define the specific instruction
         HEURISTIC_INSTRUCTION = (
-            "CRITICAL RULE (Lunch replacement): Lunch stop validation now has TWO conditions for replacement: "
-            "1) If the lunch item's geo_cluster_id does NOT match the cluster ID of the day's attractions, "
+            "CRITICAL RULE: Lunch stop validation now has TWO conditions for replacement: "
+            "1) If the lunch item's **geo_cluster_id does NOT match** the cluster ID of the day's attractions, "
             "OR 2) If the lunch stop is determined to be too far (transport gate violation) from its preceding or succeeding attractions. "
-            "If EITHER condition is true, you MUST replace it with an option from the AVAILABLE SWAP CANDIDATES DINING list that satisfies BOTH cluster and proximity when possible. "
-            "Prefer dining options that are stroller-friendly / accessible if the user's requirements indicate accessibility constraints. "
-            "If no exact cluster/proximity match is available, select the closest acceptable dining option and clearly document the tradeoff in the audit_trace."
+            "If EITHER condition is true, you MUST replace it with an option from the ***AVAILABLE SWAP CANDIDATES DINING*** list that satisfies BOTH cluster and proximity."
         )
-        DAILY_COUNT_RULES = (
-            "HARD CONSTRAINTS (Per-day composition): For every day in the itinerary you MUST ensure: "
-            "A) At least ONE lunch stop is present. If missing, insert a lunch stop from AVAILABLE SWAP CANDIDATES DINING following the 'Lunch replacement' rule above. "
-            "B) At least ONE attraction/place is scheduled in the Morning slot and at least ONE attraction/place in the Afternoon slot. "
-            "If a Morning or Afternoon slot is empty, insert a place from AVAILABLE SWAP CANDIDATES ATTRACTIONS preferring the day's cluster and preserving pace/accessibility. "
-            "When inserting, ensure the insertion does not create a transport gate violation (or, if unavoidable, document the issue in 'notes' and mark 'status' accordingly)."
-        )
-        UNIQUENESS_RULE = (
-            "UNIQUENESS CONSTRAINT (NEW & REQUIRED): Under NO CIRCUMSTANCE may the repair algorithm reuse a place_id that already appears in the current itinerary or that has been inserted earlier during this repair session. "
-            "All inserted or replacement items MUST have place_id values distinct from every other place_id in the final repaired itinerary (the only exception is the accommodation/place of stay which may be referenced multiple times). "
-            "If the available swap pools lack distinct candidates, document this limitation in 'notes', include the best possible distinct candidate, and set 'status' = 'partial'."
-        )
+        #prompt = f"{'Review' if review_only else 'Repair or review'} the itinerary to satisfy these gates. MODE: {mode}."
 
         prompt = f"""
             --- AGENT INSTRUCTIONS ---
@@ -385,37 +403,41 @@ class PlannerAgent:
         schema_json = json.dumps(expected_schema, indent=2)
 
         task_description = f"""
-            --- AGENT INSTRUCTIONS ---
-            You are a Plan Repair Agent. Your task is to review the FAILED ITINERARY and use the available dining and attraction swap candidates to create a REPAIRED ITINERARY.
-            HIGH-LEVEL GOAL: {'Review' if review_only else 'Repair or review'} the itinerary to satisfy these gates. MODE: {mode}.
+TRAVEL PLANNER {mode} TASK
 
-            {HEURISTIC_INSTRUCTION}
+USER REQUIREMENTS:
+{json.dumps(requirements, indent=2)}
 
-            {DAILY_COUNT_RULES}
+CURRENT ITINERARY:
+{json.dumps(itinerary, indent=2)}
 
-            {UNIQUENESS_RULE}
+CURRENT TRANSPORT OPTIONS:
+{json.dumps(transport, indent=2)}
 
-            Important practical rules for replacements/insertions:
-            - When replacing or inserting a lunch stop, prefer items that share the same geo_cluster_id as the day's attractions and that keep travel time between adjacent stops small.
-            - When inserting a missing Morning/Afternoon place, prefer attractions from the same geo_cluster as other stops that day; prefer attractions that are stroller-friendly / accessible if user requires accessibility.
-            - Do not create more than 1 new full-day rearrangement per day in REPAIR mode; prefer local swaps (replace or insert within same day).
-            - Every edit MUST be auditable: include the original place(s), the replacement(s), the reason (gate violated or missing slot), estimated cost delta (if known), estimated transport impact (minutes), and a one-line `audit_trace`.
-            - Maintain the UNIQUENESS CONSTRAINT: do not reuse any place_id present in the input itinerary or already chosen during repair. If no distinct candidate is available, document and mark 'partial'.
+PERFORMANCE METRICS:
+{json.dumps(metrics, indent=2)}
 
-            INSTRUCTIONS (do not include internal chain-of-thought; provide auditable rationales):
-            1) Produce a JSON object matching the 'expected_response_schema' below.
-            2) If MODE == REVIEW_ONLY: Do NOT perform large edits. Provide human_summary, per_day_timeline, and recommended_edits (0..3). You MUST still flag missing slots and explicitly recommend which dining/attraction candidates could satisfy them (but do NOT apply the edits in REVIEW_ONLY).
-            3) If MODE == REPAIR and gates failing: propose concrete edits and a repaired itinerary JSON that:
-                 - ensures each day has at least one Morning place, one Lunch stop, and one Afternoon place (unless impossible).
-                 - enforces the UNIQUENESS CONSTRAINT so no place_id is reused (except accommodation references).
-                 - keeps replacements local to the day where possible and preserves pace/accessibility preferences.
-            4) ALWAYS include 'edits' (empty list if none), 'status' (ok|partial|fail), and 'notes' explaining any remaining unsatisfied hard constraints.
-            5) For every day, ALWAYS return a per_day_timeline entry that includes keys: 'date' (or label), 'morning' (array), 'lunch' (array, min length 1), 'afternoon' (array), 'evening' (array, optional).
-            6) Keep output minimal and JSON-only.
+GATE RESULTS:
+{json.dumps(gates, indent=2)}
 
-            EXPECTED_RESPONSE_SCHEMA:
-            {schema_json}
-        """
+AVAILABLE SWAP CANDIDATES ATTRACTIONS:
+{json.dumps(attractions, indent=2)}
+
+AVAILABLE SWAP CANDIDATES DINING:
+{json.dumps(dining, indent=2)}
+
+{HEURISTIC_INSTRUCTION}
+
+INSTRUCTIONS (do not include internal chain-of-thought; provide auditable rationales):
+1) Produce a JSON object matching the 'expected_response_schema' below.
+2) If MODE == REVIEW_ONLY: Do NOT perform large edits. Provide human_summary, per_day_timeline, and recommended_edits (0..3).
+3) If MODE == REPAIR and gates failing: propose concrete edits and a repaired itinerary JSON.
+4) ALWAYS include 'edits' (empty list if none), 'status', and 'notes' for any remaining unsatisfied gates.
+5) Keep output minimal and JSON-only.
+
+EXPECTED_RESPONSE_SCHEMA:
+{schema_json}
+"""
         # Run the crew adapter
         try:
             response = None
