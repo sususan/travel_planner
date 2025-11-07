@@ -126,7 +126,7 @@ class CrewAIAdapterForFinal:
             "response_format": {"type": "json_object"}
         }
 
-        LLM_MODEL = "anthropic.claude-3-sonnet-20240229-v1:0"
+        LLM_MODEL = "apac.anthropic.claude-3-sonnet-20240229-v1:0"
 
         LLM_CONFIG = {
             # LiteLLM uses the 'model' parameter to specify the full provider and model name.
