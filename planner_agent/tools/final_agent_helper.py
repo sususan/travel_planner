@@ -13,7 +13,7 @@ import io
 import re
 
 
-def create_pdf_bytes_plain_from_html(html, title="Itinerary Export"):
+def create_pdf_bytes_plain_from_html(html, title):
     # strip tags
     soup = BeautifulSoup(html, "html.parser")
     text = soup.get_text("\n")  # join with newlines for <p>, <br>, etc.
@@ -22,7 +22,7 @@ def create_pdf_bytes_plain_from_html(html, title="Itinerary Export"):
     return create_pdf_bytes_flowable_styled(text, title=title)
 
 
-def create_pdf_bytes_flowable_styled(text, title="Itinerary Export"):
+def create_pdf_bytes_flowable_styled(text, title):
     buffer = io.BytesIO()
 
     # 1. Setup DocTemplate and Styles
@@ -80,7 +80,7 @@ def create_pdf_bytes_flowable_styled(text, title="Itinerary Export"):
 
         if not stripped_line:
             # Use small spacer for paragraph break
-            story.append(Spacer(1, 0.1 * inch))
+            story.append(Spacer(1, 0.05 * inch))
             continue
 
         # --- Pattern Matching Logic ---

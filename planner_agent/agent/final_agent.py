@@ -194,10 +194,11 @@ class CrewAIAdapterForFinal:
              For each day:
              - Include ***time slots*** (Morning / Afternoon / Evening) only do not include time.
              - For each place:
-                   - Show the **place name**,**short summary** (30–40 words) and  **address**
-                   - Add **tags or icons** (e.g., “Family-friendly”, “Stroller-friendly”, “Outdoor”) with simple paragraphed descriptions.
-                   - If available, include booking info or cost.
-                   - For each place block, include a **why this pick** section from the planner agent: {json.dumps(explanation, indent=2)} or you may use your own knowledge.
+                   - Show  
+                        -place name
+                        -short summary combine together with **tags (30–40 words) in simple paragraphed descriptions.
+                        -address
+                        - Include a **why this pick** section from the planner agent: {json.dumps(explanation, indent=2)} or you may use your own knowledge.
             - After each place (except the last of the day), include a Transport Section that summarizes the available transport options.
                 -Use data from the TRANSPORT_OPTIONS JSON and FINAL ITINERARY JSON
                 -For every 1st place block, mention that from accommodation to place
