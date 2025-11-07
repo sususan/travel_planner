@@ -60,7 +60,8 @@ def create_pdf_bytes_flowable_styled(text, title="Itinerary Export"):
                               spaceAfter=1,
                               leftIndent=15))  # Indent for addresses/transport details
 
-    styles.add(ParagraphStyle(name='BodyText',
+    # FIX: Renamed 'BodyText' to 'ItineraryBody' to avoid collision
+    styles.add(ParagraphStyle(name='ItineraryBody',
                               parent=styles['Normal'],
                               fontSize=10,
                               leading=12,
@@ -90,30 +91,43 @@ def create_pdf_bytes_flowable_styled(text, title="Itinerary Export"):
 
         # 2. Activity Header (Starts with time, e.g., '10:00 - Gardens by the Bay')
         # Use regex to find time format HH:MM at the start
+        # The line is formatted as "Time Activity Name"
         if re.match(r'^\d{1,2}:\d{2}', stripped_line):
-            story.append(Paragraph(stripped_line, styles['ActivityHeader']))
+            # Applying HTML formatting to bold the time part (if desired)
+            # Find the index of the first space or '-'
+            match = re.search(r'[\s-]', stripped_line)
+            if match:
+                 bold_time = f'<b>{stripped_line[:match.start()]}</b>'
+                 rest_of_line = stripped_line[match.start():]
+                 formatted_activity = bold_time + rest_of_line
+            else:
+                 formatted_activity = f'<b>{stripped_line}</b>'
+
+            story.append(Paragraph(formatted_activity, styles['ActivityHeader']))
             continue
 
         # 3. Transport/Address/Cost Details (e.g., 'Address:', 'Ride Duration:', 'Cost estimate:')
         if any(stripped_line.startswith(p) for p in
                ['Address:', 'Ride Duration:', 'Public Transport Duration:', 'Cycle Duration:', 'Cost estimate:',
-                'Tags:']):
-            # Bolding keywords within the DetailText to emphasize them
-            line_formatted = stripped_line.replace('Address:', '<b>Address:</b>')
-            line_formatted = line_formatted.replace('Ride Duration:', '<b>Ride Duration:</b>')
-            line_formatted = line_formatted.replace('Public Transport Duration:', '<b>Public Transport Duration:</b>')
-            line_formatted = line_formatted.replace('Cycle Duration:', '<b>Cycle Duration:</b>')
+                'Tags:', 'Route Summary:']): # Added Route Summary here
+            # Bolding keywords within the DetailText to emphasize them (using <b> tag)
+            line_formatted = stripped_line
+            for keyword in ['Address:', 'Ride Duration:', 'Public Transport Duration:', 'Cycle Duration:', 'Cost estimate:', 'Tags:', 'Route Summary:']:
+                line_formatted = line_formatted.replace(keyword, f'<b>{keyword}</b>')
+
             story.append(Paragraph(line_formatted, styles['DetailText']))
             continue
 
-        # 4. Fallback to Body Text (Descriptions, Route Summaries, etc.)
+        # 4. Fallback to Body Text (Descriptions, Trip Overview, etc.)
         else:
-            story.append(Paragraph(stripped_line, styles['BodyText']))
+            # FIX: Use the new style name
+            story.append(Paragraph(stripped_line, styles['ItineraryBody']))
 
     # 4. Build the PDF
     doc.build(story)
     buffer.seek(0)
     return buffer.read()
+
 def create_pdf_bytes(text, title="Itinerary Export"):
     """
     Create a PDF in-memory from the provided text using reportlab and return bytes.
