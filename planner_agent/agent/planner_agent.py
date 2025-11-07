@@ -87,7 +87,7 @@ class CrewAIAdapter:
     Expected response: a dict (parsed JSON) with keys like 'itinerary' and 'metrics'.
     """
 
-    def __init__(self, max_retries: int = 1, timeout_seconds: int = 30, verbose: bool = False):
+    def __init__(self, max_retries: int = 1, timeout_seconds: int = 30, verbose: bool = True):
         self.max_retries = max_retries
         self.timeout_seconds = timeout_seconds
         self.verbose = verbose
