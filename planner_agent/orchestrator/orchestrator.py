@@ -78,8 +78,8 @@ def validate_itinerary(itinerary: Dict[str, Any], metrics: Dict[str, Any], paylo
             break
 
     gates["all_ok"] = gates["budget_ok"] and gates["coverage_ok"] and gates["pace_ok"] # and not gates["uncertainty_escalate"]
-    #gates["expected_total_spend_sgd"] = round(expected_total, 2)
-    #gates["max_total_spend_sgd"] = round(max_total, 2)
+    gates["expected_total_spend_sgd"] = round(expected_total, 2)
+    gates["max_total_spend_sgd"] = round(max_total, 2)
     #gates["unknown_frac"] = agg["unknown_frac"]
     #gates["uncertainty_ratio"] = agg["uncertainty_ratio"]
     return gates
