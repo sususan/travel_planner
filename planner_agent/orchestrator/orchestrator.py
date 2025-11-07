@@ -237,6 +237,7 @@ def call_transport_agent_api(bucket_name: str, key: str, sender_agent: str, sess
     :return: Response from the API as a dictionary
     """
     url = TRANSPORT_ADAPTERAPI_ENDPOINT + "/transport"
+    logger.info(f"Calling Transport Agent API: {url}")
     headers = {"Content-Type": "application/json", "X-API-Key": X_API_Key}
     payload = {
         "bucket_name": bucket_name,
@@ -246,6 +247,7 @@ def call_transport_agent_api(bucket_name: str, key: str, sender_agent: str, sess
     }
     try:
         response = requests.post(url, json=payload, headers=headers)
+        logger.info(f"Transport Agent response: {response.json()}")
         return response
     except requests.RequestException as e:
         logging.error(f"Transport Agent API call failed: {e}")
