@@ -178,16 +178,6 @@ def plan_itinerary(bucket_name: str, key: str, session: str) -> Dict[str, Any]:
     logger.info(f"Summarizer Agent returned payload: {summarize}")
     return summarize
 
-    """return {
-        # "scored": scored,
-        # "shortlist": sl,
-        #"itinerary": itinerary,
-        # "metrics": metrics,
-        "gates": gates,
-        "explanation": explanation,
-        "planner_iterations": iterations,
-        # "final_output": final_payload
-    }"""
     #return final_payload
 
 def sumarrizer(payload: dict, transport_options: dict, bucket_name: str, fileName: str, session: str = ""):
@@ -217,11 +207,10 @@ def sumarrizer(payload: dict, transport_options: dict, bucket_name: str, fileNam
         logger.info(f"Uploaded PDF to s3://{bucket_name}/{pdf_key}")
         try:
             return {
-                "summary": human_text,
+                "itinerary_summary": human_text,
                 "follow_up": follow_up,
                 "s3_pdf_key": pdf_key,
                 "s3_pdf_presigned_url": presigned_url,
-                "gates": gates,
                 "explanation": explanation,
                 "metrics": metrics
             }
@@ -416,5 +405,5 @@ if __name__ == "__main__":
     # Upload to Summarizer Agent bucket
     # Call summarizer
     print(payload)
-    print(sumarrizer(payload, transport_options,bucket_name , fileName, session))
+    ret = sumarrizer(payload, transport_options,bucket_name , fileName, session)
     #update_json_data(bucket_name, Summarizer_Agent_Folder + "/" + fileName, payload)
