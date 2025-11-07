@@ -405,5 +405,26 @@ if __name__ == "__main__":
     # Upload to Summarizer Agent bucket
     # Call summarizer
     print(payload)
-    ret = sumarrizer(payload, transport_options,bucket_name , fileName, session)
+    requirements = payload.get("requirements", {})
+    itinerary = payload.get("itinerary", {})
+    metrics = payload.get("metrics", {})
+    explanation = payload.get("explanation", {})
+    gates = payload.get("gates", {})
+    final_agent = CrewAIAdapterForFinal()
+    response = final_agent.run(itinerary, transport_options, metrics, gates, requirements, explanation)
+    logger.info(f"Final Agent response: {response}")
+
+    # Build human-readable text (includes explanation and gates)
+    human_text = response.get("human_summary", "")
+    follow_up = response.get("follow_up", "")
+    presigned_url = ""
+    # if gates["all_ok"] == 'true':
+    # Create PDF
+    print(human_text)
+    pdf_bytes = create_pdf_bytes_plain_from_html(human_text,
+                                                 title="Your Complete Trip Guide")  # create_pdf_bytes(human_text, title="Final Itinerary (Human-readable)")
+   # Save PDF bytes to a local file
+    with open("trip_guide.pdf", "wb") as pdf_file:
+        pdf_file.write(pdf_bytes)
+    #ret = sumarrizer(payload, transport_options,bucket_name , fileName, session)
     #update_json_data(bucket_name, Summarizer_Agent_Folder + "/" + fileName, payload)

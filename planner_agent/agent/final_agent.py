@@ -220,16 +220,60 @@ class CrewAIAdapterForFinal:
            - A `<head>` section with `<meta charset="UTF-8">` and `<meta name="viewport" content="width=device-width, initial-scale=1.0">`
            - A `<style>` block (or inline CSS) including the `.notice` CSS above and other styles as needed.
            - A `<body>` section. If any gate is not okay, the `<body>` must start with the `<div class="notice">...</div>` followed by the itinerary content.
-        3. **Content Requirements:** (unchanged — day-by-day blocks, transport sections, 'why this place' text, plan overview, action items, etc.)
-           - For each place use `<div class="place" data-place-id="...">`
-           - For transport options use `<div class="transport" data-from="..." data-to="...">`
-           - Include the plan overview and action items as described previously.
-
-        --- TECHNICAL OUTPUT CONTRACT ---
-        Return a single JSON object with these keys:
-        - "human_summary": string — the full HTML document (including the `<head>`, `<style>`, and `<body>`). The top of `<body>` must include `<div class="notice">` **only if** any gate is not okay.
-        - "audit_logs": array — short rationale entries (can be empty) for traceability.
-        - "line_item_costs": array — line items used to compute budget (can be empty if not applicable).
+       3. **Content Requirements:**
+           - **Title:** Display the trip title
+           - **Date Range:** Display the start and end dates in a clear format.(E.g, June 1 - June 5, 2025)
+           - **Introduction Paragraph (1–2 sentences):**  
+             Warmly summarize the trip (destination, style, duration).
+           - **Day-by-Day Breakdown:**  
+             For each day:
+             - Include ***time slots*** (Morning / Afternoon / Evening) only do not include time.
+             - For each place:
+                   - Show the 
+                        -place name
+                        -short summary combine together with **tags (30–40 words) in simple paragraphed descriptions.
+                        -address
+                   - If available, include booking info or cost.
+                   - For each place block, include a **why this pick** section from the planner agent: {json.dumps(explanation, indent=2)} or you may use your own knowledge.
+            - After each place (except the last of the day), include a Transport Section that summarizes the available transport options.
+                -Use data from the TRANSPORT_OPTIONS JSON and FINAL ITINERARY JSON
+                -For every 1st place block, mention that from accommodation to place
+                -For every 2nd place block, mention that from place to destination place using only place id of TRANSPORT_OPTIONS JSON and FINAL ITINERARY JSON
+                -If no transport options are available (place id mismatch), don't include random transport options just skip to include it.
+             -Transport Selection Rules (Eco-Prioritized):
+                1.Mandatory Row 1 (Speed): The transport mode with the shortest duration must be the first row.
+                2.Mandatory Row 2 (Green/Value): The second row must be the most Eco-Friendly option (lowest carbon_kg) that is not 'ride' or 'taxi'. If a low-carbon option is also significantly cheaper (cost is at least 30% lower than the fastest mode), it should be explicitly noted as the "Best Value & Greenest" option in the Route Summary.
+                3.Maximum Rows: Display a maximum of three distinct transport modes. 
+                 -Display Format for Each Mode:            
+                    Mode (e.g., “Walk”, “Bus”, “MRT”)
+                    Duration (minutes)
+                    Approximate cost (SGD)
+                    Carbon Footprint (kg)
+                    Route Summary (1 concise sentence explaining the route and its key feature: Fastest, Greenest, or Cheapest).
+                Prefer the shortest duration mode, but display alternatives if they are notably cheaper or greener.
+            
+            -Included the simaple plan overview from the planner agent: {json.dumps(explanation, indent=2)} 
+               Estimated adult ticket spend  (e.g., ~ SGD 942.5)
+               Approx. travel distance (e.g.,  ~ 229.4 km.)
+               Accessible stops counted (e.g.,  14.)
+           - **Final Section – Action Items (3–5):**  
+             Present a short checklist like:
+             - Confirm ticket bookings 
+             - Check local weather forecast  
+             - Pack comfortable shoes  
+             - Download offline maps  
+        
+        4. **Tone & Readability:**
+           - Write concise, traveler-friendly sentences.
+           - Use active voice and optimistic phrasing (“Enjoy a relaxing morning at…”, “Hop on a quick MRT ride…”).
+           - Avoid repeating place names excessively.
+        
+        5. **Technical Requirements:**
+           - Wrap each place block in a container like `<div class="place" data-place-id="...">`
+           - For each transport option, use `<div class="transport" data-from="..." data-to="...">`
+           - Include an overall `<section class="summary">` at the end summarizing total distance, estimated cost, and eco-score if available.
+           - Ensure all times are formatted as `HH:MM` 24-hour local time.
+           - Return the entire HTML document inside a single JSON object with the key `"human_summary"`.
 
         --- OUTPUT CONSTRAINTS ---
         Produce a JSON object matching the 'EXPECTED_RESPONSE_SCHEMA' below. Do NOT include any text outside the JSON block.

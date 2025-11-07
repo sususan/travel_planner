@@ -17,10 +17,9 @@ def create_pdf_bytes_plain_from_html(html, title):
     # strip tags
     tags_to_ignore = ['strong']
     soup = BeautifulSoup(html, "html.parser")
-    text = soup.get_text
     text = soup.get_text("\n")  # join with newlines for <p>, <br>, etc.
-    #text = re.sub(r'[ \t\r\f\v]+', ' ', text)
-    #text = re.sub(r'\n+', '\n', text)
+    text = re.sub(r'[ \t\r\f\v]+', ' ', text)
+    text = re.sub(r'\n+', '\n', text)
     # then reuse your existing function or embed printing logic
     return create_pdf_bytes_flowable_styled(text, title=title)
 
