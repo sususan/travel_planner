@@ -8,6 +8,8 @@ import traceback
 from typing import Dict, Any
 import requests
 import boto3
+from botocore.config import Config
+
 from planner_agent.agent.transport import TransportAdapter, attach_transport_options
 from planner_agent.planner_core.core import score_candidates, shortlist, assign_to_days, explain
 from planner_agent.tools.config import MAX_AGENT_ITERATIONS, Summarizer_Agent_Folder, Final_ADAPTERAPI_ENDPOINT, \
@@ -296,7 +298,10 @@ def lambda_synchronous_call(function_name: str, bucket_name: str, key: str, send
     :param payload: Payload dictionary to pass to the Lambda function
     :return: Response from the Lambda function as a dictionary
     """
-    client = boto3.client('lambda')
+    cfg = Config(connect_timeout=60, read_timeout=900)
+
+    client = boto3.client('lambda', config=cfg)
+
     try:
         # Call the Lambda function
         response = client.invoke(
