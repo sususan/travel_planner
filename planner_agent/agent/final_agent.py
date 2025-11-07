@@ -126,7 +126,7 @@ class CrewAIAdapterForFinal:
             "response_format": {"type": "json_object"}
         }
 
-        LLM_MODEL = "apac.anthropic.claude-3-sonnet-20240229-v1:0"
+        """LLM_MODEL = "apac.anthropic.claude-3-sonnet-20240229-v1:0"
 
         LLM_CONFIG = {
             # LiteLLM uses the 'model' parameter to specify the full provider and model name.
@@ -135,7 +135,7 @@ class CrewAIAdapterForFinal:
             "request_timeout": 60,
             "temperature": 0.2,
             "response_format": {"type": "json_object"}
-        }
+        }"""
         # Agent Definition
         if Agent is not None:
             agent = Agent(
@@ -144,8 +144,8 @@ class CrewAIAdapterForFinal:
                 backstory=BACKSTORY,
                 allow_delegation=False,
                 verbose=self.verbose,
-                #llm=LLM_MODEL,
-                llm=LLM_CONFIG.get("model"),
+                llm=LLM_MODEL,
+                #llm=LLM_CONFIG.get("model"),
                 config=LLM_CONFIG
             )
         else:
@@ -154,8 +154,8 @@ class CrewAIAdapterForFinal:
                 "role": "Travel Document Editor",
                 "goal": GOAL,
                 "backstory": BACKSTORY,
-                #"llm": LLM_MODEL,
-                "llm": LLM_CONFIG.get("model"),
+                "llm": LLM_MODEL,
+                #"llm": LLM_CONFIG.get("model"),
                 "config": LLM_CONFIG
             }
 
