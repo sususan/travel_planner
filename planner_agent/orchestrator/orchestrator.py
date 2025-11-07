@@ -217,17 +217,13 @@ def sumarrizer(payload: dict, transport_options: dict, bucket_name: str, fileNam
         logger.info(f"Uploaded PDF to s3://{bucket_name}/{pdf_key}")
         try:
             return {
-                "statusCode": 200,
+                "summary": human_text,
                 "follow_up": follow_up,
-                "message": human_text,
                 "s3_pdf_key": pdf_key,
                 "s3_pdf_presigned_url": presigned_url,
-                "session": session,
-                "summary": {
-                    "gates": gates,
-                    "explanation": explanation,
-                    "metrics": metrics.get("_agent_review")
-                }
+                "gates": gates,
+                "explanation": explanation,
+                "metrics": metrics
             }
         except Exception as e:
             # fallback: return base64 PDF in response body
