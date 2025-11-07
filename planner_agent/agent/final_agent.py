@@ -192,29 +192,28 @@ class CrewAIAdapterForFinal:
              Warmly summarize the trip (destination, style, duration).
            - **Day-by-Day Breakdown:**  
              For each day:
-             - Include ***time slots*** (Morning / Afternoon / Evening) only do not include time.
-             - For each place:
-                   - Show  
-                        -place name
-                        -short summary combine together with **tags (30–40 words) in simple paragraphed descriptions.
-                        -address
-                        - Include a **why this pick** section from the planner agent: {json.dumps(explanation, indent=2)} or you may use your own knowledge.
+                - Include ***time slots*** (Morning / Afternoon / Evening) only do not include time.
+             For each place show below:
+                -place name
+                -short summary combine together with **tags (30–40 words) in simple paragraphed descriptions.
+                -address
+                - Include a **why this pick** section from the planner agent: {json.dumps(explanation, indent=2)} or you may use your own knowledge.
             - After each place (except the last of the day), include a Transport Section that summarizes the available transport options.
-                -Use data from the TRANSPORT_OPTIONS JSON and FINAL ITINERARY JSON
-                -For every 1st place block, mention that from accommodation to place
-                -For every 2nd place block, mention that from place to destination place using only place id of TRANSPORT_OPTIONS JSON and FINAL ITINERARY JSON
-                -If no transport options are available (place id mismatch), don't include random transport options just skip to include it.
-             -Transport Selection Rules (Eco-Prioritized):
-                1.Mandatory Row 1 (Speed): The transport mode with the shortest duration must be the first row.
-                2.Mandatory Row 2 (Green/Value): The second row must be the most Eco-Friendly option (lowest carbon_kg) that is not 'ride' or 'taxi'. If a low-carbon option is also significantly cheaper (cost is at least 30% lower than the fastest mode), it should be explicitly noted as the "Best Value & Greenest" option in the Route Summary.
-                3.Maximum Rows: Display a maximum of three distinct transport modes. 
-                 -Display Format for Each Mode:            
-                    Mode (e.g., “Walk”, “Bus”, “MRT”)
-                    Duration (minutes)
-                    Approximate cost (SGD)
-                    Carbon Footprint (kg)
-                    Route Summary (1 concise sentence explaining the route and its key feature: Fastest, Greenest, or Cheapest).
-                Prefer the shortest duration mode, but display alternatives if they are notably cheaper or greener.
+                 -Use data from the TRANSPORT_OPTIONS JSON and FINAL ITINERARY JSON
+                 -For every 1st place block, mention that from accommodation to place
+                 -For every 2nd place block, mention that from place to destination place using only place id of TRANSPORT_OPTIONS JSON and FINAL ITINERARY JSON
+                 -If no transport options are available (place id mismatch), don't include random transport options just skip to include it.
+                 -Transport Selection Rules (Eco-Prioritized):
+                    1.Mandatory Row 1 (Speed): The transport mode with the shortest duration must be the first row.
+                    2.Mandatory Row 2 (Green/Value): The second row must be the most Eco-Friendly option (lowest carbon_kg) that is not 'ride' or 'taxi'. If a low-carbon option is also significantly cheaper (cost is at least 30% lower than the fastest mode), it should be explicitly noted as the "Best Value & Greenest" option in the Route Summary.
+                    3.Maximum Rows: Display a maximum of three distinct transport modes. 
+                     -Display Format for Each Mode:            
+                        Mode (e.g., “Walk”, “Bus”, “MRT”)
+                        Duration (minutes)
+                        Approximate cost (SGD)
+                        Carbon Footprint (kg)
+                        Route Summary (1 concise sentence explaining the route and its key feature: Fastest, Greenest, or Cheapest).
+                    Prefer the shortest duration mode, but display alternatives if they are notably cheaper or greener.
             
             -Included the simaple plan overview from the planner agent: {json.dumps(explanation, indent=2)} 
                Estimated adult ticket spend  (e.g., ~ SGD 942.5)
@@ -225,14 +224,29 @@ class CrewAIAdapterForFinal:
              - Confirm ticket bookings 
              - Check local weather forecast  
              - Pack comfortable shoes  
-             - Download offline maps  
         
-        4. **Tone & Readability:**
+        4. ** Sample display format **
+            - Title (e.g, Family Trip to Singapore (2025-06-01 to 2025-06-03))
+            - Introduction
+              **hierarchical structure**
+              - Day 1: 2024-06-01
+                Morning:
+                    **Places**
+                    **Transport Options**
+                Lunch:
+                    **Lunch Stop**
+                    **Transport Options**
+                Afternoon:
+                    **Places**
+                    **Transport Options**
+            - Plan Overview
+            - Action Items
+        5. **Tone & Readability:**
            - Write concise, traveler-friendly sentences.
            - Use active voice and optimistic phrasing (“Enjoy a relaxing morning at…”, “Hop on a quick MRT ride…”).
            - Avoid repeating place names excessively.
         
-        5. **Technical Requirements:**
+        6. **Technical Requirements:**
            - Wrap each place block in a container like `<div class="place" data-place-id="...">`
            - For each transport option, use `<div class="transport" data-from="..." data-to="...">`
            - Include an overall `<section class="summary">` at the end summarizing total distance, estimated cost, and eco-score if available.
