@@ -191,6 +191,7 @@ def plan_itinerary(bucket_name: str, key: str, session: str) -> Dict[str, Any]:
     #return final_payload
 
 def sumarrizer(payload: dict, transport_options: dict, bucket_name: str, fileName: str, session: str = ""):
+    global pdf_key
     try:
         # Ask FinalAgent to run (keeps existing behavior)
         requirements = payload.get("requirements", {})
@@ -204,16 +205,16 @@ def sumarrizer(payload: dict, transport_options: dict, bucket_name: str, fileNam
 
         # Build human-readable text (includes explanation and gates)
         human_text = response.get("human_summary", "")
-        pdf_key= ""
+        presigned_url= ""
         if gates["all_ok"]:
             # Create PDF
             pdf_bytes = create_pdf_bytes_plain_from_html(human_text, title="Your Complete Trip Guide") #create_pdf_bytes(human_text, title="Final Itinerary (Human-readable)")
 
             # Upload PDF to S3 under final_outputs/
             pdf_key = f"final_outputs/{fileName.rsplit('.', 1)[0]}.pdf"
-        try:
             presigned_url = upload_pdf_to_s3(bucket_name, pdf_key, pdf_bytes)
             logger.info(f"Uploaded PDF to s3://{bucket_name}/{pdf_key}")
+        try:
             return {
                 "statusCode": 200,
                 "message": human_text,
