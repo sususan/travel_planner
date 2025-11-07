@@ -48,11 +48,13 @@ def lambda_handler(event, context):
                 requirements = payload.get("requirements", {})
                 itinerary = payload.get("itinerary", {})
                 metrics = payload.get("metrics", {})
-                explanation = explain(requirements, itinerary, metrics)
+                explanation = payload.get("explanation", {})
+                #explanation = explain(requirements, itinerary, metrics)
                 gates = payload.get("gates", {})
 
                 # Ask FinalAgent to run (keeps existing behavior)
-                response = final_agent.run(itinerary, metrics,  gates, requirements)
+
+                response = final_agent.run(itinerary, {}, metrics,  gates, requirements, explanation)
                 logger.info("Final agent returned payload (kept in logs for debugging)")
 
                 # Build human-readable text (includes explanation and gates)
