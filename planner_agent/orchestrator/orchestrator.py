@@ -202,7 +202,7 @@ def sumarrizer(payload: dict, transport_options: dict, bucket_name: str, fileNam
         pdf_bytes = create_pdf_bytes_plain_from_html(human_text, title="Your Complete Trip Guide") #create_pdf_bytes(human_text, title="Final Itinerary (Human-readable)")
 
         # Upload PDF to S3 under final_outputs/
-        pdf_key = f"final_outputs/{fileName.rsplit('.', 1)[0]}.pdf"
+        pdf_key = f"{fileName.rsplit('.', 1)[0]}.pdf"
         presigned_url = upload_pdf_to_s3(bucket_name, pdf_key, pdf_bytes)
         logger.info(f"Uploaded PDF to s3://{bucket_name}/{pdf_key}")
         try:
