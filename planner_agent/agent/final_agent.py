@@ -194,11 +194,15 @@ class CrewAIAdapterForFinal:
              For each day:
              - Include ***time slots*** (Morning / Afternoon / Evening) only do not include time.
              - For each place:
-               - Show the **place name**,**short summary** (25–40 words) and  **address**
-               - Add **tags or icons** (e.g., “Family-friendly”, “Stroller-friendly”, “Outdoor”) with simple paragraphed descriptions.
-               - If available, include booking info or cost.
-             - After each place (except the last of the day), include a Transport Section that summarizes the available transport options.
-                Use data from the TRANSPORT_OPTIONS JSON where from_place_id == current_place.place_id and to_place_id == next_place.place_id.
+                   - Show the **place name**,**short summary** (30–40 words) and  **address**
+                   - Add **tags or icons** (e.g., “Family-friendly”, “Stroller-friendly”, “Outdoor”) with simple paragraphed descriptions.
+                   - If available, include booking info or cost.
+                   - For each place block, include a **why this pick** section from the planner agent: {json.dumps(explanation, indent=2)} or you may use your own knowledge.
+            - After each place (except the last of the day), include a Transport Section that summarizes the available transport options.
+                -Use data from the TRANSPORT_OPTIONS JSON and FINAL ITINERARY JSON
+                -For every 1st place block, mention that from accommodation to place
+                -For every 2nd place block, mention that from place to destination place using only place id of TRANSPORT_OPTIONS JSON and FINAL ITINERARY JSON
+                -If no transport options are available (place id mismatch), don't include random transport options just skip to include it.
              -Transport Selection Rules (Eco-Prioritized):
                 1.Mandatory Row 1 (Speed): The transport mode with the shortest duration must be the first row.
                 2.Mandatory Row 2 (Green/Value): The second row must be the most Eco-Friendly option (lowest carbon_kg) that is not 'ride' or 'taxi'. If a low-carbon option is also significantly cheaper (cost is at least 30% lower than the fastest mode), it should be explicitly noted as the "Best Value & Greenest" option in the Route Summary.
@@ -210,14 +214,14 @@ class CrewAIAdapterForFinal:
                     Carbon Footprint (kg)
                     Route Summary (1 concise sentence explaining the route and its key feature: Fastest, Greenest, or Cheapest).
                 Prefer the shortest duration mode, but display alternatives if they are notably cheaper or greener.
-            - For each place block, include a **explanatio(why this pick)n** section from the planner agent: {json.dumps(explanation, indent=2)} 
+            
             -Included the simaple plan overview from the planner agent: {json.dumps(explanation, indent=2)} 
                Estimated adult ticket spend  (e.g., ~ SGD 942.5)
                Approx. travel distance (e.g.,  ~ 229.4 km.)
                Accessible stops counted (e.g.,  14.)
            - **Final Section – Action Items (3–5):**  
              Present a short checklist like:
-             - Confirm ticket bookings  (e.g., ~ SGD 942.5)
+             - Confirm ticket bookings 
              - Check local weather forecast  
              - Pack comfortable shoes  
              - Download offline maps  
