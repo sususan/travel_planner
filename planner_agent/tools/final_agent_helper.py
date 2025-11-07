@@ -16,8 +16,9 @@ import re
 def create_pdf_bytes_plain_from_html(html, title):
     # strip tags
     soup = BeautifulSoup(html, "html.parser")
-    text = soup.get_text("\n")  # join with newlines for <p>, <br>, etc.
-
+    text = soup.get_text("")  # join with newlines for <p>, <br>, etc.
+    text = re.sub(r'[ \t\r\f\v]+', ' ', text)
+    text = re.sub(r'\n+', '\n', text)
     # then reuse your existing function or embed printing logic
     return create_pdf_bytes_flowable_styled(text, title=title)
 
@@ -107,12 +108,12 @@ def create_pdf_bytes_flowable_styled(text, title):
             continue
 
         # 3. Transport/Address/Cost Details (e.g., 'Address:', 'Ride Duration:', 'Cost estimate:')
-        if any(stripped_line.startswith(p) for p in
+        """if any(stripped_line.startswith(p) for p in
                ['Address:', 'Ride Duration:', 'Public Transport Duration:', 'Cycle Duration:', 'Cost estimate:',
-                'Tags:', 'Route Summary:']): # Added Route Summary here
+                'Tags:', 'Route Summary:', 'Why this place pick:', "Transport Options:"]): # Added Route Summary here
             # Bolding keywords within the DetailText to emphasize them (using <b> tag)
             line_formatted = stripped_line
-            for keyword in ['Address:', 'Ride Duration:', 'Public Transport Duration:', 'Cycle Duration:', 'Cost estimate:', 'Tags:', 'Route Summary:']:
+            for keyword in ['Address:', 'Ride Duration:', 'Public Transport Duration:', 'Cycle Duration:', 'Cost estimate:', 'Tags:', 'Route Summary:', 'Why this place pick:', "Transport Options:"]:
                 line_formatted = line_formatted.replace(keyword, f'<b>{keyword}</b>')
 
             story.append(Paragraph(line_formatted, styles['DetailText']))
@@ -121,7 +122,9 @@ def create_pdf_bytes_flowable_styled(text, title):
         # 4. Fallback to Body Text (Descriptions, Trip Overview, etc.)
         else:
             # FIX: Use the new style name
-            story.append(Paragraph(stripped_line, styles['ItineraryBody']))
+            story.append(Paragraph(stripped_line, styles['ItineraryBody']))"""
+
+        story.append(Paragraph(stripped_line, styles['ItineraryBody']))
 
     # 4. Build the PDF
     doc.build(story)

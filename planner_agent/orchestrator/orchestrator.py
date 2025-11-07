@@ -54,7 +54,7 @@ def validate_itinerary(itinerary: Dict[str, Any], metrics: Dict[str, Any], paylo
     if agg["unknown_frac"] >= 0.30 or agg["uncertainty_ratio"] >= 0.10:
         gates["uncertainty_escalate"] = True
 
-    gates["budget_ok"] = max_total <= budget_cap
+    gates["budget_ok"] = expected_total <= budget_cap
 
     # coverage gate (simple): require some interest terms covered if requested
     if req.get("optional", {}).get("interests"):
@@ -413,6 +413,6 @@ if __name__ == "__main__":
     payload["metrics"] = metrics
     payload["explanation"] = explanation
     # Upload to Summarizer Agent bucket
-    update_json_data(bucket_name, Summarizer_Agent_Folder + "/" + fileName, payload)
     # Call summarizer
     print(sumarrizer(payload, transport_options,bucket_name , fileName, session))
+    update_json_data(bucket_name, Summarizer_Agent_Folder + "/" + fileName, payload)

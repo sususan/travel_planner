@@ -145,7 +145,6 @@ class CrewAIAdapterForFinal:
                 allow_delegation=False,
                 verbose=self.verbose,
                 llm=LLM_MODEL,
-                #llm=LLM_CONFIG.get("model"),
                 config=LLM_CONFIG
             )
         else:

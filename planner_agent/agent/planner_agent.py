@@ -139,7 +139,6 @@ class CrewAIAdapter:
                 allow_delegation=False,
                 verbose=self.verbose,
                 llm=LLM_MODEL,
-                #llm=LLM_CONFIG.get("model"),
                 config=LLM_CONFIG
             )
         else:
@@ -353,7 +352,7 @@ class PlannerAgent:
             "CRITICAL RULE: Lunch stop validation now has TWO conditions for replacement: "
             "1) If the lunch item's **geo_cluster_id does NOT match** the cluster ID of the day's attractions, "
             "OR 2) If the lunch stop is determined to be too far (transport gate violation) from its preceding or succeeding attractions. "
-            "If EITHER condition is true, you MUST remove the existing lunch item and replace it with an option from the 'AVAILABLE SWAP CANDIDATES DINING' list that satisfies BOTH cluster and proximity."
+            "If EITHER condition is true, you MUST replace it with an option from the ***AVAILABLE SWAP CANDIDATES DINING*** list that satisfies BOTH cluster and proximity."
         )
         #prompt = f"{'Review' if review_only else 'Repair or review'} the itinerary to satisfy these gates. MODE: {mode}."
 
