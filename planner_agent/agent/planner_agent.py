@@ -123,14 +123,12 @@ class CrewAIAdapter:
             "response_format": {"type": "json_object"}
         }
         LLM_MODEL = "apac.anthropic.claude-3-sonnet-20240229-v1:0"
-
         LLM_CONFIG = {
             # LiteLLM uses the 'model' parameter to specify the full provider and model name.
             # The format is typically "<provider>/<model_name>"
-            "model": f"bedrock/{LLM_MODEL}",
+             "model": f"bedrock/{LLM_MODEL}",
             "request_timeout": 60,
             "temperature": 0.2,
-            "response_format": {"type": "json_object"}
         }
         # Use a lightweight agent descriptor if Agent class isn't available
         if Agent is not None:
@@ -151,7 +149,8 @@ class CrewAIAdapter:
                 "role": "Plan Repair",
                 "goal": GOAL,
                 "backstory": BACKSTORY,
-                "llm": LLM_MODEL,
+                # llm=LLM_MODEL,
+                "llm": LLM_CONFIG.get("model"),
                 "config":LLM_CONFIG
             }
 
