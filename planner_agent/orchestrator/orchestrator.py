@@ -206,14 +206,14 @@ def sumarrizer(payload: dict, transport_options: dict, bucket_name: str, fileNam
         # Build human-readable text (includes explanation and gates)
         human_text = response.get("human_summary", "")
         presigned_url= ""
-        if gates["all_ok"]:
-            # Create PDF
-            pdf_bytes = create_pdf_bytes_plain_from_html(human_text, title="Your Complete Trip Guide") #create_pdf_bytes(human_text, title="Final Itinerary (Human-readable)")
+        #if gates["all_ok"] == 'true':
+        # Create PDF
+        pdf_bytes = create_pdf_bytes_plain_from_html(human_text, title="Your Complete Trip Guide") #create_pdf_bytes(human_text, title="Final Itinerary (Human-readable)")
 
-            # Upload PDF to S3 under final_outputs/
-            pdf_key = f"final_outputs/{fileName.rsplit('.', 1)[0]}.pdf"
-            presigned_url = upload_pdf_to_s3(bucket_name, pdf_key, pdf_bytes)
-            logger.info(f"Uploaded PDF to s3://{bucket_name}/{pdf_key}")
+        # Upload PDF to S3 under final_outputs/
+        pdf_key = f"final_outputs/{fileName.rsplit('.', 1)[0]}.pdf"
+        presigned_url = upload_pdf_to_s3(bucket_name, pdf_key, pdf_bytes)
+        logger.info(f"Uploaded PDF to s3://{bucket_name}/{pdf_key}")
         try:
             return {
                 "statusCode": 200,
@@ -325,7 +325,7 @@ def lambda_synchronous_call(function_name: str, bucket_name: str, key: str, send
 
 if __name__ == "__main__":
     import json
-    with open("../inputs/20251031T003447_su12ea72.json", "r") as f:
+    with open("../inputs/20251107T104145_55247379.json", "r") as f:
         payload = json.load(f)
     #scored = score_candidates(payload)                      # accepts payload["requirements"]["weights"] if present
     #sl = shortlist(payload, scored)                         # respects budget/type caps if provided
