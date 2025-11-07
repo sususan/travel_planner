@@ -177,7 +177,7 @@ class CrewAIAdapterForFinal:
         USER REQUIREMENTS: {json.dumps(requirements, indent=2)}
         FINAL ITINERARY (Validated): {json.dumps(itinerary, indent=2)}
         TRANSPORT OPTIONS (Optional): {json.dumps(transport_options, indent=2)}
-        #EXPLANATION: {json.dumps(explanation, indent=2)}
+        EXPLANATION (Optional): {json.dumps(explanation, indent=2)}
 
         --- STYLE AND FORMATTING RULES ---
         1. **Target Audience:** The end-user (traveler). Use a friendly, encouraging, and clear tone.
@@ -195,13 +195,13 @@ class CrewAIAdapterForFinal:
                 - Include ***time slots*** (Morning / Afternoon / Evening) only do not include time.
              For each place show below:
                 -place name
-                -short summary combine together with **tags (30–40 words) in simple paragraphed descriptions.
+                -short summary in a simple paragraphed descriptions, you may add your own knowledge.
                 -address
-                - Include a **why this pick** section from the planner agent: {json.dumps(explanation, indent=2)} or you may use your own knowledge.
+                - Include a **why this place pick** section from EXPLANATION JSON or you may use your own knowledge.
             - After each place (except the last of the day), include a Transport Section that summarizes the available transport options.
                  -Use data from the TRANSPORT_OPTIONS JSON and FINAL ITINERARY JSON
-                 -For every 1st place block, mention that from accommodation to place
-                 -For every 2nd place block, mention that from place to destination place using only place id of TRANSPORT_OPTIONS JSON and FINAL ITINERARY JSON
+                 -For every 1st place block, always mention that from accommodation to place
+                 -For every 2nd place block, always mention that from place to destination place using only place id of TRANSPORT_OPTIONS JSON and FINAL ITINERARY JSON
                  -If no transport options are available (place id mismatch), don't include random transport options just skip to include it.
                  -Transport Selection Rules (Eco-Prioritized):
                     1.Mandatory Row 1 (Speed): The transport mode with the shortest duration must be the first row.
