@@ -126,12 +126,12 @@ class CrewAIAdapterForFinal:
             "response_format": {"type": "json_object"}
         }
 
-        BEDROCK_MODEL = "anthropic.claude-3-sonnet-20240229-v1:0"
+        LLM_MODEL = "anthropic.claude-3-sonnet-20240229-v1:0"
 
         LLM_CONFIG = {
             # LiteLLM uses the 'model' parameter to specify the full provider and model name.
             # The format is typically "<provider>/<model_name>"
-            "model": f"bedrock/{BEDROCK_MODEL}",
+            "model": f"bedrock/{LLM_MODEL}",
             "request_timeout": 60,
             "temperature": 0.2,
             "response_format": {"type": "json_object"}
@@ -144,7 +144,8 @@ class CrewAIAdapterForFinal:
                 backstory=BACKSTORY,
                 allow_delegation=False,
                 verbose=self.verbose,
-                llm=LLM_MODEL,
+                #llm=LLM_MODEL,
+                llm=LLM_CONFIG.get("model"),
                 config=LLM_CONFIG
             )
         else:
@@ -153,7 +154,8 @@ class CrewAIAdapterForFinal:
                 "role": "Travel Document Editor",
                 "goal": GOAL,
                 "backstory": BACKSTORY,
-                "llm": LLM_MODEL,
+                #"llm": LLM_MODEL,
+                "llm": LLM_CONFIG.get("model"),
                 "config": LLM_CONFIG
             }
 
@@ -185,15 +187,15 @@ class CrewAIAdapterForFinal:
            - A `<style>` block or inline CSS for consistent formatting (cards, headings, icons, etc.)
            - A `<body>` section with clear visual hierarchy.
         3. **Content Requirements:**
-           - **Title/Header:** Display the trip title and dates prominently.
+           - **Title:** Display the trip title and dates prominently.
            - **Introduction Paragraph (1–2 sentences):**  
              Warmly summarize the trip (destination, style, duration).
            - **Day-by-Day Breakdown:**  
              For each day:
-             - Include ***time slots*** (Morning / Afternoon / Evening).
+             - Include ***time slots*** (Morning / Afternoon / Evening) only do not include time.
              - For each place:
-               - Show the **place name**,**short summary** (15–30 words) and  **address**
-               - Add **tags or icons** (e.g., “Family-friendly”, “Stroller-friendly”, “Outdoor”).  
+               - Show the **place name**,**short summary** (25–40 words) and  **address**
+               - Add **tags or icons** (e.g., “Family-friendly”, “Stroller-friendly”, “Outdoor”) with simple paragraphed descriptions.
                - If available, include booking info or cost.
              - After each place (except the last of the day), include a Transport Section that summarizes the available transport options.
                 Use data from the TRANSPORT_OPTIONS JSON where from_place_id == current_place.place_id and to_place_id == next_place.place_id.
@@ -208,10 +210,14 @@ class CrewAIAdapterForFinal:
                     Carbon Footprint (kg)
                     Route Summary (1 concise sentence explaining the route and its key feature: Fastest, Greenest, or Cheapest).
                 Prefer the shortest duration mode, but display alternatives if they are notably cheaper or greener.
-            -Included the simaple explanation from the planner agent: {json.dumps(explanation, indent=2)}
+            - For each place block, include a **explanatio(why this pick)n** section from the planner agent: {json.dumps(explanation, indent=2)} 
+            -Included the simaple plan overview from the planner agent: {json.dumps(explanation, indent=2)} 
+               Estimated adult ticket spend  (e.g., ~ SGD 942.5)
+               Approx. travel distance (e.g.,  ~ 229.4 km.)
+               Accessible stops counted (e.g.,  14.)
            - **Final Section – Action Items (3–5):**  
              Present a short checklist like:
-             - Confirm ticket bookings  
+             - Confirm ticket bookings  (e.g., ~ SGD 942.5)
              - Check local weather forecast  
              - Pack comfortable shoes  
              - Download offline maps  
