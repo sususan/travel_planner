@@ -15,3 +15,4 @@ X_API_Key = "pYSqYcivG1504xjeQAskn2iyVS7fZ2Uj14lK1w8v" #os.getenv("X-API-Key")
 TransportAgentARN = 'arn:aws:lambda:ap-southeast-1:641675857341:function:transport-queue-handler-prod'
 LLM_MODEL = os.getenv("CREW_LLM_MODEL", "gpt-4o-mini")
 OPENAI_API_KEY =os.getenv("OPENAI_API_KEY")
+force_agent_review= True

@@ -1,613 +1,731 @@
-# planner_agent.py
-# ---------- NEW (AGENTIC) ----------
-# PlannerAgent is agentic: it can either use CrewAI (via CrewAIAdapter) or run a local heuristic.
-# It accepts the failed gates and attempts to repair the plan repeatedly until gates pass or max iterations.
-import logging
-from typing import Dict, Any, Tuple, Optional
-import copy
+import re
+from _sha2 import sha256
+from typing import Any, Dict, Optional, Callable, Tuple, List, MutableMapping
 import json
+import logging
 import time
+import traceback
 import os
 
-from planner_agent.tools.config import LLM_MODEL, OPENAI_API_KEY
-from planner_agent.tools.helper import impute_price
+from planner_agent.grafana.dashboard import start_metrics_server, PIPELINE_STEP_COUNT, ITINERARIES_CREATED, \
+    GATE_FAILURES, AVG_CO2, LAST_RUN_DURATION, LAST_RUN_GAUGE
+from planner_agent.tools.helper import convertCrewOutputToJson
+from planner_agent.tools.planner_agent_helper import apply_edits_to_itinerary, parse_planner_repair_response, \
+    detect_prompt_injection, sanitize_text_field
+from planner_agent.tools.s3io import update_json_data, get_json_data
 
-logger = logging.getLogger()
+os.environ["OPENAI_MODEL_NAME"] = "gpt-4.1-nano-2025-04-14"#"gpt-4o-mini"
+os.environ.setdefault("CREWAI_TELEMETRY_ENABLED", "False")
+# Also disable common OpenTelemetry exporters to be safe if SDK uses them:
+os.environ.setdefault("OTEL_TRACES_EXPORTER", "none")
+os.environ.setdefault("OTEL_EXPORTER_OTLP_ENDPOINT", "")
+os.environ.setdefault("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "")
+logger = logging.getLogger("planner_agent_crewtools")
+
+# Reduce noisy telemetry log spam
+logging.getLogger("crewai.telemetry").setLevel(logging.CRITICAL)
+logging.getLogger("crewai").setLevel(logging.WARNING)
+
+if not logger.handlers:
+    ch = logging.StreamHandler()
+    ch.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] planner_agent_crewtools - %(message)s"))
+    logger.addHandler(ch)
 logger.setLevel(logging.INFO)
 
+import crewai
 try:
-    from crewai import Crew, Agent, Task
+    # best-effort: disable telemetry API if SDK exposes it
+    if hasattr(crewai, "telemetry"):
+        crewai.telemetry.enabled = False
+        # and replace any send function with a no-op
+        if hasattr(crewai.telemetry, "send_trace"):
+            crewai.telemetry.send_trace = lambda *a, **kw: None
 except Exception:
-    # SDK not installed or import failed; wrap gracefully
-    Crew = None
-    Agent = None
-    Task = None
-    LLM = None
-# planner_agent.py (inside CrewAIAdapter)
+    pass
 
-def _parse_crew_output(raw: Any) -> Optional[Dict[str, Any]]:
-    """
-    Robust parser for Crew raw responses.
-    Accepts: dict, JSON string, list, and CrewOutput (new).
-    Returns the first reasonable dict or None.
-    """
-    if raw is None:
-        return None
+# Try to import crew SDK & tool decorator
+try:
+    # Agent, Crew, Task are core components for v1.4.1 Agentic Flow
+    from crewai import Crew, Task, Agent, CrewOutput  # noqa: F401
+    from crewai.tools import tool  # decorate tool functions
 
-    # NEW FIX: Handle CrewOutput objects directly
-    if hasattr(raw, 'raw') and isinstance(raw.raw, str):
-        raw = raw.raw  # Extract the underlying string content
-    elif hasattr(raw, 'result') and isinstance(raw.result, str):
-        raw = raw.result  # Alternative extraction method for older SDKs/variants
+    CREW_AVAILABLE = True
+except Exception:
+    CREW_AVAILABLE = False
 
-    # If already a dict, return it
-    if isinstance(raw, dict):
-        return raw
-    # If it's a string, try to JSON-decode
-    if isinstance(raw, str):
-        try:
-            # First attempt: treat the whole string as JSON
-            parsed = json.loads(raw)
-            if isinstance(parsed, dict):
-                return parsed
-        except Exception:
-            # Second attempt: try to find a JSON substring (robust extraction)
-            try:
-                # Use regex or simple find/split to isolate the JSON block
-                # Looking for standard markdown JSON fences (`json` or `)
-                if '```json' in raw:
-                    raw = raw.split('```json', 1)[-1].split('```', 1)[0].strip()
-                elif '```' in raw:
-                    raw = raw.split('```', 1)[-1].split('```', 1)[0].strip()
+    # Provide a noop decorator replacement so code can run in local-only mode
+    def tool(*args, **kwargs):
+        def _decorator(fn):
+            return fn
 
-                parsed = json.loads(raw)
-                if isinstance(parsed, dict):
-                    return parsed
-            except Exception:
-                # not JSON; ignore
-                return None
-    # If it's a list, try each element (unchanged)
-    if isinstance(raw, list):
-        for elt in raw:
-            # Recursive call to handle lists of strings or dicts
-            parsed = _parse_crew_output(elt)
-            if parsed:
-                return parsed
-    # Unknown shape
-    return None
+        return _decorator
 
-class CrewAIAdapter:
-    """
-    CrewAI adapter to run agentic tasks synchronously.
+# NOTE: Assuming these local implementations exist and are imported correctly
+from planner_agent.tools.planner_agent_tools import score_candidates as _local_score_candidates
+from planner_agent.tools.planner_agent_tools import shortlist as _local_shortlist
+from planner_agent.tools.planner_agent_tools import assign_to_days as _local_assign_to_days
+from planner_agent.tools.planner_agent_tools import call_transport_agent_api as _local_call_transport_agent_api
+from planner_agent.tools.planner_agent_tools import validate_itinerary as _local_validate_itinerary
 
-    Usage:
-      adapter = CrewAIAdapter(max_retries=2, timeout_seconds=30)
-      response = adapter.run(prompt="Repair the itinerary...", context={...})
+# -------------------------
+# Crew @tool wrappers (FIXED for v1.4.1)
+# -------------------------
 
-    Expected response: a dict (parsed JSON) with keys like 'itinerary' and 'metrics'.
-    """
 
-    def __init__(self, max_retries: int = 1, timeout_seconds: int = 30, verbose: bool = True):
-        self.max_retries = max_retries
+# -------------------------
+# CrewToolInvoker: robust calls to Crew (Simplified for v1.4.1)
+# -------------------------
+class CrewToolInvoker:
+    def __init__(self, crew_agent_descriptor: Optional[dict] = None, timeout_seconds: int = 60, verbose: bool = True):
+        self.crew_agent_descriptor = {"role": "PlannerAgent","goal": "Execute planning tool calls."}
         self.timeout_seconds = timeout_seconds
         self.verbose = verbose
+        try:
+            start_metrics_server(port=int(os.getenv("PLANNER_METRICS_PORT", "8000")))
+        except Exception:
+            logger.exception("Failed to start metrics HTTP server")
 
-    def _build_agent_spec(self, prompt: str, task_description: str):
-        """
-        Build a minimal agent spec and expected output schema for the Task.
-        Returns (agent_obj_or_descriptor, expected_output_dict)
-        ### FIXED: provide expected_output as a dict (not a plain string).
-        """
-        GOAL = (
-            "Repair the provided itinerary so it meets all validation gates "
-            "(budget, pace/day, interest coverage, transport, and uncertainty thresholds). "
-            "You must swap or remove items from the itinerary as needed to satisfy these gates, "
-            "but you are NEVER allowed to invent or hallucinate new places. "
-            "All replacements or insertions MUST come strictly from the provided candidate lists: "
-            "'AVAILABLE SWAP CANDIDATES ATTRACTIONS' and 'AVAILABLE SWAP CANDIDATES DINING'. "
+    def call(self, tool_name: str, inputs: Dict[str, Any]) -> str:
 
-            "HARD DAILY STRUCTURE RULES: "
-            "Every day must contain at least one Morning place, one Lunch stop, and one Afternoon place. "
-            "If any slot is missing, retrieve a replacement from the appropriate candidate pool: "
-            "- Use 'AVAILABLE SWAP CANDIDATES DINING' for Lunch. "
-            "- Use 'AVAILABLE SWAP CANDIDATES ATTRACTIONS' for Morning and Afternoon. "
-            "When selecting, always prefer candidates that: "
-            "(1) belong to the same geo_cluster_id as the other places that day, "
-            "(2) align with the user's stated interests and preferences, "
-            "(3) are not already used anywhere else in the itinerary (unique place_id), and "
-            "(4) do not violate the transport or accessibility gates. "
+        if CREW_AVAILABLE is False:
+            raise ImportError("crewai SDK not available in this environment")
 
-            "CRITICAL RULE (Lunch replacement): "
-            "A lunch stop must be replaced if either of these conditions are true: "
-            "1) its geo_cluster_id does NOT match the cluster ID of the day's attractions, OR "
-            "2) it is too far from its preceding or succeeding attractions (transport gate violation). "
-            "In that case, remove it and choose a substitute ONLY from 'AVAILABLE SWAP CANDIDATES DINING' "
-            "that satisfies both cluster and proximity rules. "
+        # 1. Get the correct tool object
+        tool_obj = next((t for t in ALL_TOOLS if getattr(t, 'name', '') == tool_name), None)
+        if not tool_obj:
+            return f"Tool {tool_name} not found in ALL_TOOLS list."
 
-            "When repairing, minimize disruption: make the smallest number of edits necessary. "
-            "Prefer replacing or adding a single item within the same cluster rather than reshuffling full days. "
-            "Always document every edit in the 'edits' array with: the reason, original and new place_id, "
-            "estimated cost delta (SGD), and a short one-line audit rationale. "
+        # 2. Prepare Task description/prompt
+        task_prompt = f"Call the tool '{tool_name}' with the following input arguments:\n{json.dumps(inputs, indent=2)}"
 
-            "Return a JSON object with keys: itinerary, metrics, edits, status, and notes. "
-            "If a complete repair is not possible due to lack of matching candidates, "
-            "return a best-effort plan using the closest available cluster match and clearly mark unsatisfied gates and reasons."
-        )
-
-        BACKSTORY = (
-            "You are an experienced travel operations engineer and itinerary optimizer. "
-            "You make careful, traceable edits that maintain user intent and comfort. "
-            "You NEVER invent new locations; every addition or replacement must come from provided candidate lists only. "
-            "You always prioritize user preferences (interests, pace, dietary, accessibility) "
-            "and keep places geographically coherent by cluster. "
-            "You favor conservative, low-risk edits that clearly improve cost, travel time, or coverage metrics. "
-            "When missing slots are filled, you choose replacements that fit naturally in the route and cluster. "
-            "All changes must be auditable with brief rationale and numeric impact. "
-            "If uncertain, choose the safer, more verifiable option and document the assumption in 'notes'."
-        )
+        # 3. Instantiate Agent object
         LLM_CONFIG = {
-            "api_key": OPENAI_API_KEY,
+            "max_tokens": 500,
             "request_timeout": 60,
-            "temperature": 0.2,
-            # This is the standard way to force JSON output using LiteLLM/OpenAI config
+            "temperature": 0.0,
             "response_format": {"type": "json_object"}
         }
-        """LLM_MODEL = "apac.anthropic.claude-3-sonnet-20240229-v1:0"
-        LLM_CONFIG = {
-            # LiteLLM uses the 'model' parameter to specify the full provider and model name.
-            # The format is typically "<provider>/<model_name>"
-             "model": f"bedrock/{LLM_MODEL}",
-            "request_timeout": 60,
-            "temperature": 0.2,
-        }"""
-        # Use a lightweight agent descriptor if Agent class isn't available
-        if Agent is not None:
-            agent = Agent(
-                role="Plan Repair",
-                goal=GOAL,
-                backstory=BACKSTORY,
-                allow_delegation=False,
-                verbose=self.verbose,
-                llm=LLM_MODEL,
-                config=LLM_CONFIG
-            )
-        else:
-            # SDK not present; provide a dict describing the agent (some SDK variants accept this)
-            agent = {
-                "name": "planner_repair_agent",
-                "role": "Plan Repair",
-                "goal": GOAL,
-                "backstory": BACKSTORY,
-                "llm": LLM_MODEL,
-                #"llm": LLM_CONFIG.get("model"),
-                "config":LLM_CONFIG
-            }
 
-        # expected_output: Use a descriptive STRING (required by Pydantic Task validation)
-        expected_output_str = (
-            "A single, strict JSON object matching the schema provided in the task description. "
-            "It must contain 'itinerary', 'metrics', 'edits', 'status', and 'human_summary' keys."
+        agent = Agent(
+            role=self.crew_agent_descriptor.get('role', 'Tool Executor'),
+            goal=self.crew_agent_descriptor.get('goal', 'Execute the assigned planning task.'),
+            backstory=f"A dedicated agent responsible for executing the '{tool_name}' tool.",
+            tools=[tool_obj],
+            verbose=True, # Use Agent verbose if needed
+            llm = "gpt-4o-mini",
+            config=LLM_CONFIG
         )
 
-        return agent, expected_output_str
-
-    def run(self, prompt: str, task_description: Optional[str] = None, context: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
-        """
-        New signature to match planner usage:
-          run(prompt=str(prompt), task_description=str(task_description))
-        Builds a Task (with expected_output) from the provided strings and optional context,
-        calls the Crew SDK with the Task object (not stringified), and returns a parsed dict.
-        ### FIX: Removed 'context=ctx' from Task constructors and task_payload to resolve Pydantic error.
-        """
-        if Crew is None:
-            if self.verbose:
-                logger.info("[CrewAIAdapter] Crew SDK not available; skipping agentic run.")
-            return None
-
-        prompt_text = prompt or ""
-        task_desc = task_description or prompt_text
-        ctx = context or {}
-
-        # Build agent spec and expected_output (now a string)
-        agent, expected_output = self._build_agent_spec(prompt_text, task_desc)
-
-        # Try to construct a Task - many SDKs accept different param names; try likely variants
-        task_obj = None
-        if Task is not None:
-            try:
-                # FIX 1: Removed context=ctx
-                task_obj = Task(description=task_desc, agent=agent, expected_output=expected_output)
-            except Exception as e:
-                # try alternative keyword
-                try:
-                    # FIX 2: Removed context=ctx
-                    task_obj = Task(description=task_desc, agent=agent, expected_output_schema=expected_output)
-                except Exception:
-                    # final fallback: try the minimal Task with no expected_output and rely on string instructions in description
-                    try:
-                        # FIX 3: Removed context=ctx
-                        task_obj = Task(description=task_desc, agent=agent)
-                    except Exception as ee:
-                        if self.verbose:
-                            logger.exception("[CrewAIAdapter] Failed to construct Task object: %s", ee)
-                        task_obj = None
-
-        # If Task class not available or construction failed, use a dict payload
-        if task_obj is None:
-            task_payload = {
-                "description": task_desc,
-                "agent": agent,
-                # FIX 4: Removed "context": ctx,
-                "expected_output": expected_output
-            }
-        else:
-            task_payload = task_obj
-
-        attempt = 0
-        last_exc = None
-        # instantiate Crew once per call
-        try:
-            # Instantiate Crew with the task_payload
-            crew = Crew(agents=[agent], tasks=[task_payload], verbose=self.verbose)
-        except Exception as e:
-            logger.exception("[CrewAIAdapter] Failed to initialize Crew: %s", e)
-            return None
-
-        while attempt <= self.max_retries:
-            attempt += 1
-            try:
-                if self.verbose:
-                    logger.info(f"[CrewAIAdapter] kickoff attempt {attempt}")
-
-                raw = None
-                # Try common SDK invocation signatures defensively
-                try:
-                    # Primary: call kickoff with no args, relying on pre-loaded tasks
-                    raw = crew.kickoff()
-                except Exception:
-                    try:
-                        # Fallback 1: some SDKs accept tasks=[task_payload]
-                        raw = crew.kickoff(tasks=[task_payload])
-                    except TypeError:
-                        try:
-                            # Fallback 2: some SDKs accept task=task_payload
-                            raw = crew.kickoff(task=task_payload)
-                        except Exception:
-                            # Fallback 3: try the run method
-                            try:
-                                raw = crew.run(task_payload)
-                            except Exception as e:
-                                if self.verbose:
-                                    logger.info("[CrewAIAdapter] All kickoff signatures failed on this attempt: %s", e)
-                                raise
-
-                if self.verbose:
-                    logger.info("[CrewAIAdapter] raw response type: %s", type(raw))
-
-                parsed = _parse_crew_output(raw)
-                if parsed:
-                    return parsed
-
-                # if raw is a string that contains JSON somewhere, attempt to extract
-                if isinstance(raw, str):
-                    try:
-                        # try to find JSON substring
-                        start = raw.find("{")
-                        if start >= 0:
-                            candidate = raw[start:]
-                            parsed2 = json.loads(candidate)
-                            if isinstance(parsed2, dict):
-                                return parsed2
-                    except Exception:
-                        pass
-
-                last_exc = RuntimeError("unparsable crew output")
-            except Exception as exc:
-                last_exc = exc
-                logger.exception("[CrewAIAdapter] exception during kickoff attempt %d: %s", attempt, exc)
-                time.sleep(min(0.5 * attempt, 3.0))
-                continue
-
-        logger.info("[CrewAIAdapter] all attempts failed: %s", last_exc)
-        return None
-
-
-class PlannerAgent:
-    def __init__(self, crew_adapter: Optional[CrewAIAdapter] = None, max_iterations: int = 3):
-        """
-        crew_adapter: if provided, PlannerAgent will run agentic tasks via CrewAI; else uses local heuristics.
-        """
-        self.crew_adapter = crew_adapter
-        self.max_iterations = max_iterations
-
-    def run(self,
-            requirements: Dict[str, Any],
-            attractions: Dict[str, Any],
-            shortlist: Dict[str, Any],
-            dining: Dict[str, Any],
-            itinerary: Dict[str, Any],
-            transport: Dict[str, Any],
-            metrics: Dict[str, Any],
-            gates: Dict[str, Any],
-            force_review: bool = True
-            ) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
-        """
-        Attempt to repair or REVIEW the itinerary.
-
-        Returns: (new_itinerary_or_none, new_metrics_or_none)
-        Always returns tuples (no other types).
-        ### FIXED: simplified gates check and consistent returns.
-        """
-        # Prefer explicit 'all_ok' key; fallback to checking boolean keys
-        gates_ok = bool(gates.get("all_ok")) if isinstance(gates, dict) else False
-
-        needs_agent = force_review or not gates_ok
-
-        if self.crew_adapter and needs_agent:
-            return self._run_with_crew(itinerary, transport, metrics, shortlist, attractions, dining, requirements, gates,
-                                       review_only=(force_review and gates_ok))
-
-        # No Crew adapter or not needed -> local behavior
-        if force_review:
-            explained = self.local_explain_and_recommend(requirements, itinerary, transport, metrics, gates, attractions, dining)
-            # normalized dict shape
-            it_suggested = explained.get("itinerary_suggested", itinerary) if isinstance(explained, dict) else itinerary
-            new_metrics = explained.get("metrics", metrics) if isinstance(explained, dict) else metrics
-            # attach agent_summary if present
-            agent_summary = explained.get("agent_summary") if isinstance(explained, dict) else None
-            if agent_summary:
-                new_metrics = dict(new_metrics)
-                new_metrics["_agent_review"] = agent_summary
-            return it_suggested, new_metrics
-
-        # default fallback: local repair if gates failing, otherwise return original
-        if not gates_ok:
-            return self._local_repair(itinerary, metrics, shortlist, gates)
-        return itinerary, metrics
-
-    def _run_with_crew(self, itinerary, transport, metrics,
-            shortlist, attractions, dining, requirements, gates, review_only: bool = False):
-        """
-        AGENTIC: call Crew to REVIEW or REPAIR the itinerary.
-        review_only=True -> agent should NOT make large structural changes, only produce a 'review' and 'recommended edits'
-        review_only=False -> agent should attempt repair if gates failing.
-        Agent is asked to return a strict JSON contract described below.
-
-        ### FIXED: robust call to crew_adapter.run with context and schema in task_description/context.
-        """
-        mode = "REVIEW_ONLY" if review_only else "REPAIR"
-
-        # 1. Define the specific instruction
-        HEURISTIC_INSTRUCTION = (
-            "CRITICAL RULE: Lunch stop validation now has TWO conditions for replacement: "
-            "1) If the lunch item's **geo_cluster_id does NOT match** the cluster ID of the day's attractions, "
-            "OR 2) If the lunch stop is determined to be too far (transport gate violation) from its preceding or succeeding attractions. "
-            "If EITHER condition is true, you MUST replace it with an option from the ***AVAILABLE SWAP CANDIDATES DINING*** list that satisfies BOTH cluster and proximity."
+        # 4. Create Task object (v1.4.1 standard)
+        task = Task(
+            description=task_prompt,
+            expected_output="The output dictionary from the tool call.",
+            tools=[tool_obj]
         )
-        #prompt = f"{'Review' if review_only else 'Repair or review'} the itinerary to satisfy these gates. MODE: {mode}."
 
-        prompt = f"""
-            --- AGENT INSTRUCTIONS ---
-            You are a Plan Repair Agent. Your task is to review the FAILED ITINERARY and use the available dining options to create a REPAIRED ITINERARY.
-             HIGH-LEVEL GOAL: {'Review' if review_only else 'Repair or review'} the itinerary to satisfy these gates. MODE: {mode}."""
+        # FIX: Assign the Agent to the Task for Sequential Process compatibility
+        task.agent = agent
 
-        expected_schema = {
-            "itinerary": "object or null",
-            "metrics": "object or null",
-            "human_summary": "string or null",
-            "per_day_timeline": "array",
-            "edits": "array",
-            "status": "ok|partial|fail",
-            "notes": "string"
-        }
-        schema_json = json.dumps(expected_schema, indent=2)
+        # 5. Instantiate Crew
+        crew = Crew(
+            agents=[agent],
+            tasks=[task],
+            verbose=self.verbose,
+            full_output=True  # Ensures detailed output is available
+            # process=Process.sequential # Default
+        )
 
-        task_description = f"""
-TRAVEL PLANNER {mode} TASK
-
-USER REQUIREMENTS:
-{json.dumps(requirements, indent=2)}
-
-CURRENT ITINERARY:
-{json.dumps(itinerary, indent=2)}
-
-CURRENT TRANSPORT OPTIONS:
-{json.dumps(transport, indent=2)}
-
-PERFORMANCE METRICS:
-{json.dumps(metrics, indent=2)}
-
-GATE RESULTS:
-{json.dumps(gates, indent=2)}
-
-AVAILABLE SWAP CANDIDATES ATTRACTIONS:
-{json.dumps(attractions, indent=2)}
-
-AVAILABLE SWAP CANDIDATES DINING:
-{json.dumps(dining, indent=2)}
-
-{HEURISTIC_INSTRUCTION}
-
-INSTRUCTIONS (do not include internal chain-of-thought; provide auditable rationales):
-1) Produce a JSON object matching the 'expected_response_schema' below.
-2) If MODE == REVIEW_ONLY: Do NOT perform large edits. Provide human_summary, per_day_timeline, and recommended_edits (0..3).
-3) If MODE == REPAIR and gates failing: propose concrete edits and a repaired itinerary JSON.
-4) ALWAYS include 'edits' (empty list if none), 'status', and 'notes' for any remaining unsatisfied gates.
-5) Keep output minimal and JSON-only.
-
-EXPECTED_RESPONSE_SCHEMA:
-{schema_json}
-"""
-        # Run the crew adapter
         try:
-            response = None
-            if self.crew_adapter:
-                # The LLM context is now entirely within task_description
-                response = self.crew_adapter.run(prompt=prompt, task_description=task_description)
-            # If no response from crew, fallback deterministically
-            if not response:
-                if review_only:
-                    explained = self.local_explain_and_recommend(requirements, itinerary, transport, metrics, gates, attractions, dining)
-                    m = dict(metrics)
-                    m["_agent_review"] = explained.get("agent_summary", {})
-                    return explained.get("itinerary_suggested", itinerary), m
-                else:
-                    return self._local_repair(itinerary, metrics, shortlist , gates)
-
-            # parse/validate response (response may already be a dict)
-            if isinstance(response, dict):
-                new_it = response.get("itinerary") or itinerary
-                new_metrics = response.get("metrics") or metrics
-                agent_summary = {
-                    "human_summary": response.get("human_summary"),
-                    "edits": response.get("edits", []),
-                    "status": response.get("status"),
-                    "notes": response.get("notes")
-                }
-                new_metrics = dict(new_metrics)
-                new_metrics["_agent_review"] = agent_summary
-                return new_it, new_metrics
-
-            # otherwise try to parse raw via helper
-            parsed = _parse_crew_output(response)
-            if parsed and isinstance(parsed, dict):
-                new_it = parsed.get("itinerary") or itinerary
-                new_metrics = parsed.get("metrics") or metrics
-                agent_summary = {
-                    "human_summary": parsed.get("human_summary"),
-                    "edits": parsed.get("edits", []),
-                    "status": parsed.get("status"),
-                    "notes": parsed.get("notes")
-                }
-                new_metrics = dict(new_metrics)
-                new_metrics["_agent_review"] = agent_summary
-                return new_it, new_metrics
+            # 6. Kickoff the Crew (v1.4.1 standard synchronous run)
+            raw_result = crew.kickoff()
+            return raw_result.raw
 
         except Exception as e:
-            logger.exception("[PlannerAgent] crew_adapter.run failed with exception: %s", e)
-            # Fallback behavior: deterministic explanation or repair
-            if review_only:
-                explained = self.local_explain_and_recommend(requirements, itinerary, transport, metrics, gates, attractions, dining)
-                m = dict(metrics)
-                m["_agent_review"] = explained.get("agent_summary", {})
-                return explained.get("itinerary_suggested", itinerary), m
-            return self._local_repair(itinerary, metrics, shortlist, gates)
+            logger.exception(f"Crew tool {tool_name} kickoff failed: %s", e)
+            #return {"success": False, "parsed": None, "raw": None, "error": str(e)}
+            return ""
 
-        # If we reach here, parsing failed; fallback
-        if review_only:
-            explained = self.local_explain_and_recommend(requirements, itinerary, transport, metrics, gates, attractions, dining)
-            m = dict(metrics)
-            m["_agent_review"] = explained.get("agent_summary", {})
-            return explained.get("itinerary_suggested", itinerary), m
-        return self._local_repair(itinerary, metrics, shortlist, gates)
 
-    def local_explain_and_recommend(self, requirements, itinerary, transport, metrics, gates, attractions, dining):
-        """
-        Lightweight deterministic fallback when Crew isn't available or when we need a quick
-        auditable review without calling external LLM:
-          - builds human_summary text,
-          - lists up to 3 recommended edits (with simple numeric heuristics),
-          - returns a suggested itinerary (may be same as input).
+@tool("planner_repair")
+def planner_repair_tool(bucket: str, key: str, max_edits: int = 4) -> dict:
+    """
+    Calls an LLM (via Crew agent) to propose minimal repairs.
+    Returns a dict matching the OUTPUT SCHEMA:
+    {
+      "edits": [...],
+      "explain_summary": "...",
+      "confidence": "<low|medium|high>",
+      "_raw": "<raw agent output for audit>"
+    }
+    """
+    print("!! LLM guided planner_repair_tool!!")  # allowed AFTER docstring
 
-        ### FIXED: returns a dict with fixed keys for caller compatibility.
-        """
-        # Simple summary
-        days = len(itinerary.keys()) if isinstance(itinerary, dict) else 0
-        human_summary = f"Auto-review: {days} day(s). Budget target: {requirements.get('budget')}. Estimated cost: {metrics.get('estimated_cost', 'unknown')}."
-        edits = []
+    payload = get_json_data(bucket, key)
+    requirements = payload.get("requirements", {})
+    itinerary = payload.get("itinerary", {})
+    gates = payload.get("gates", {})
+    shortlist = payload.get("shortlist", {})
 
-        # If budget exceeded, recommend dropping the single most expensive scheduled item
-        if not gates.get("budget_ok"):
-            scheduled = []
-            for date, plan in (itinerary.items() if isinstance(itinerary, dict) else []):
-                for slot in ("morning", "afternoon", "lunch"):
-                    item = plan.get(slot, {}).get("item") if isinstance(plan, dict) else None
-                    if item:
-                        price = impute_price(item).get("adults", 0)
-                        scheduled.append({"date": date, "slot": slot, "item": item, "price": price})
-            scheduled.sort(key=lambda x: x["price"], reverse=True)
-            if scheduled:
-                top = scheduled[0]
-                edits.append({
-                    "type": "remove",
-                    "target": {"date": top["date"], "slot": top["slot"], "place_id": top["item"].get("place_id")},
-                    "suggested": None,
-                    "impact": {"cost_sgd_delta": -top["price"], "travel_minutes_delta": 0, "carbon_kg_delta": 0.0},
-                    "rationale": f"Remove highest-cost item ({top['item'].get('name', 'unknown')}) to reduce budget pressure."
-                })
-
-        agent_summary = {
-            "human_summary": human_summary,
-            "edits": edits,
-            "status": "partial" if edits else "ok",
-            "notes": "Local heuristic review"
-        }
-
-        # normalized return contract
-        return {
-            "itinerary_suggested": itinerary,
-            "metrics": metrics,
-            "agent_summary": agent_summary
-        }
-
-    def _local_repair(self, itinerary, metrics, shortlist, gates):
-        """
-        Local heuristic repair:
-         - If budget violated: iteratively remove the scheduled item with highest imputed price (descending),
-         - If pace violated: drop afternoon slots first,
-         - Re-attach transport and re-evaluate gates (orchestrator will re-run validate after receiving returned itinerary).
-        This is conservative and deterministic (no external calls).
-        """
-        it = copy.deepcopy(itinerary)
-        for iteration in range(self.max_iterations):
-            scheduled = []
-            for date, plan in (it.items() if isinstance(it, dict) else []):
-                for slot in ("morning", "afternoon"):
-                    item = plan.get(slot, {}).get("item") if isinstance(plan, dict) else None
-                    if item:
-                        price = impute_price(item).get("adults", 0)
-                        scheduled.append({"date": date, "slot": slot, "item": item, "estimated_price": price})
-            scheduled.sort(key=lambda x: x["estimated_price"], reverse=True)
-            if not scheduled:
-                break
-            # Attempt removal based on gate type
-            if not gates.get("budget_ok"):
-                to_remove = scheduled[0]
-                it[to_remove["date"]][to_remove["slot"]]["item"] = None
-            elif not gates.get("pace_ok"):
-                removed = False
-                for s in scheduled:
-                    if s["slot"] == "afternoon":
-                        it[s["date"]][s["slot"]]["item"] = None
-                        removed = True
-                        break
-                if not removed:
-                    it[scheduled[0]["date"]][scheduled[0]["slot"]]["item"] = None
+    # Prompt-injection defenses
+    for k, v in requirements.items():
+        if isinstance(v, str):
+            if detect_prompt_injection(v):
+                logger.warning("Prompt injection detected in requirements[%s]; neutralizing.", k)
+                requirements[k] = "[REDACTED_SUSPICIOUS]"
             else:
-                # coverage/uncertainty heuristics
-                removed_any = False
-                if shortlist and isinstance(shortlist, dict):
-                    for cat in shortlist.values():
-                        for candidate in (cat if isinstance(cat, list) else []):
-                            pid = candidate.get("place_id") or candidate.get("id")
-                            for date, plan in it.items():
-                                for slot in ("morning", "afternoon", "lunch"):
-                                    item = plan.get(slot, {}).get("item")
-                                    if item and (item.get("place_id") == pid or item.get("id") == pid):
-                                        plan[slot]["item"] = None
-                                        removed_any = True
-                                        break
-                                if removed_any:
-                                    break
-                            if removed_any:
-                                break
-                        if removed_any:
-                            break
-                if not removed_any:
-                    it[scheduled[0]["date"]][scheduled[0]["slot"]]["item"] = None
+                requirements[k] = sanitize_text_field(v)
 
-            # Return modified itinerary; orchestrator is responsible for re-attaching transport and re-validating gates.
-            return it, metrics
+    # sanitize shortlist names and descriptions
+    for pool in ("attractions", "dining"):
+        items = shortlist.get(pool) or []
+        for i in items:
+            if "name" in i: i["name"] = sanitize_text_field(i["name"])
+            if "description" in i:
+                if detect_prompt_injection(i["description"]):
+                    i["description"] = "[REDACTED_SUSPICIOUS]"
+                else:
+                    i["description"] = sanitize_text_field(i["description"])
+    output_schema = """
+    {
+      "edits": [
+        {
+          "action": "swap" | "remove" | "add",
+          "day_index": <0-based day index>,
+          "remove_place_id": "<place_id>",        // required for swap/remove
+          "add_place_id": "<place_id>",           // required for swap/add
+          "type": "dinning | attraction",
+          "insert_after_place_id": "<place_id>" | null, // optional for add: where to insert
+          "reason": "<one-line rationale>"
+        }
+        ...
+      ],
+      "explain_summary": "<one-paragraph summary of why edits should fix failing gates>",
+      "confidence": "<low|medium|high>"
+    }
+    """
 
-        # If cannot repair, return None pair
-        return None, None
+    task_prompt = f"""
+    You are PlannerRepairAgent.  MUST RETURN EXACTLY ONE JSON OBJECT and NOTHING ELSE.
+
+    CONTEXT:
+    - USER REQUIREMENTS:
+    {json.dumps(requirements, indent=2)}
+
+    - CURRENT ITINERARY (one object):
+    {json.dumps(itinerary, indent=2)}
+
+    - VALIDATION GATES (failing gates highlighted):
+    {json.dumps(gates, indent=2)}
+
+    - ATTRACTIONS CANDIDATE POOL (attractions shortlist results; include place_id, name, price_estimate, category, cluster_id, reliability_score):
+    {json.dumps(shortlist.get("attractions"), indent=2)}
+    
+    - DINING CANDIDATE POOL (dining shortlist results; include place_id, name, price_estimate, category, cluster_id, reliability_score):
+    {json.dumps(shortlist.get("dining"), indent=2)}
+
+    GOAL:
+    Propose a minimal set of edits (swap, remove, or add) so the itinerary satisfies the failing gates.
+    Constraints:
+    1. You MAY ONLY use places that appear in the Candidate Pool.
+    2. Do not invent new places.
+    3. Make minimal edits: prefer removing or swapping single items rather than re-building the whole day.
+    4. Provide a short rationale for each edit (1 sentence).
+    5. If no reasonable repair is possible using candidates, return edits: [] and a short "cannot_repair" reason.
+    6. Lunch stop must be included on all days.Never remove lunch stop instead of swapping it from DINING CANDIDATE POOL.
+    7. Always swap the same type of place for the same day. E.g, if remove dining, swap with dining, if remove attraction, swap with attraction.
+        
+    OUTPUT SCHEMA (exact JSON shape — must follow; DO NOT change punctuation):
+    {output_schema}
+    """
+
+    # Agent config
+    LLM_CONFIG = {
+        "max_tokens": 500,
+        "request_timeout": 60,
+        "temperature": 0.0,
+        "response_format": {"type": "json_object"}
+    }
+
+    # Create agent (use whichever variant you prefer from earlier options)
+    agent = Agent(
+        role="PlannerRepairAgent",
+        goal="Propose minimal edits (swap/remove/add) from the provided candidate pool to satisfy failing validation gates.",
+        backstory=(
+            "A planner assistant that proposes compact itinerary edits drawn only from the provided shortlist. "
+            "Focus on minimal, valid changes with a one-line rationale for each edit."
+        ),
+        verbose=False,
+        llm="gpt-4o-mini",
+        config=LLM_CONFIG
+    )
+    expected_output = """
+    {
+            "type": "object",
+            "properties": {
+                "edits": {"type": "array"},
+                "explain_summary": {"type": "string"},
+                "confidence": {"type": "string"}
+            },
+            "required": ["edits", "explain_summary", "confidence"],
+            "additionalProperties": True
+        }
+    """
+    task = Task(
+        description=task_prompt,
+        # give a minimal expected_output schema object so Crew/Pydantic is happy
+        expected_output=expected_output,
+    )
+
+    # Attach the agent to the task (this is the important bit)
+    task.agent = agent
+
+    # Now build Crew with the single agent+task
+    crew = Crew(
+        agents=[agent],
+        tasks=[task],
+        verbose=False,
+    )
+
+    raw_output = None
+    try:
+        kickoff = crew.kickoff()
+        # `kickoff()` return shape depends on Crew version; adapt as necessary:
+        # some versions: kickoff().raw, others: kickoff().output or kickoff()
+        raw_output = getattr(kickoff, "raw", kickoff)
+        raw_text = raw_output if isinstance(raw_output, str) else json.dumps(raw_output)
+    except Exception as e:
+        logger.exception("planner_repair: Crew kickoff failed")
+        # safe failure response
+        return {"edits": [], "explain_summary": "crew_kickoff_failed", "confidence": "low", "_raw": str(e)}
+
+    # Try to parse JSON robustly
+    parsed = None
+    try:
+        # If raw_output is a dict already (Crew may return parsed object), use it
+        if isinstance(raw_output, dict):
+            parsed = raw_output
+        else:
+            parsed = json.loads(raw_text)
+    except Exception:
+        # fallback: extract first {...} block
+        m = re.search(r"\{(?:[^{}]|\{[^{}]*\})*\}", raw_text, flags=re.DOTALL)
+        if m:
+            try:
+                parsed = json.loads(m.group(0))
+            except Exception:
+                parsed = None
+
+    if not parsed:
+        logger.warning("planner_repair: failed to parse agent output, returning safe fallback")
+        return {"edits": [], "explain_summary": "parse_error", "confidence": "low", "_raw": raw_text}
+
+    # Enforce schema sanity: cap edits, ensure ids are strings and that add/swap targets exist in shortlist
+    shortlist_by_id = {p.get("place_id"): p for p in (shortlist.get("places") or [])}
+    valid_edits = []
+    for e in parsed.get("edits", [])[:max_edits]:
+        action = e.get("action")
+        if action not in ("swap", "remove", "add"):
+            continue
+        day_index = e.get("day_index")
+        if not isinstance(day_index, int) or day_index < 0:
+            continue
+        # check presence of place ids for actions
+        if action in ("swap", "remove") and not e.get("remove_place_id"):
+            continue
+        if action in ("swap", "add") and not e.get("add_place_id"):
+            continue
+        # ensure add_place_id exists in shortlist when provided
+        add_id = e.get("add_place_id")
+        if add_id and add_id not in shortlist_by_id:
+            continue
+        valid_edits.append({
+            "action": action,
+            "day_index": day_index,
+            "remove_place_id": e.get("remove_place_id"),
+            "add_place_id": e.get("add_place_id"),
+            "insert_after_place_id": e.get("insert_after_place_id"),
+            "reason": e.get("reason", "")[:200]
+        })
+
+    parsed["edits"] = valid_edits
+    parsed["_raw"] = raw_text
+    return parsed
+
+@tool("score_candidates")
+def score_candidates_tool(bucket: str, key: str) -> dict:
+    """Returns a mapping place_id -> item info (same as local implementation)."""
+    print("score_candidates_tool")
+    try:
+        if not callable(_local_score_candidates):
+            raise RuntimeError("Local score_candidates implementation not available")
+        return _local_score_candidates(bucket, key, None)
+        #print(f"score_candidates_tool: out ={out}")
+    except Exception as e:
+        logger.exception("score_candidates_tool failed: %s", e)
+        return {}
+
+@tool("shortlist")
+def shortlist_tool(bucket: str, key: str) -> dict:
+    """Returns dict {'attractions': [...], 'dining': [...], 'reasons': {...}}."""
+    print("shortlist_tool")
+    try:
+        if not callable(_local_shortlist):
+            raise RuntimeError("Local shortlist implementation not available")
+        return _local_shortlist(bucket, key)
+
+    except Exception as e:
+        logger.exception("shortlist_tool failed: %s", e)
+        return {}
+
+@tool("assign_to_days")
+def assign_to_days_tool(bucket: str, key: str) -> dict:
+    """Returns {'itinerary': {...}, 'metrics': {...}, 'assign_reasons': {...}}."""
+    print("assign_to_days_tool")
+
+    try:
+        if not callable(_local_assign_to_days):
+            raise RuntimeError("Local assign_to_days implementation not available")
+        return _local_assign_to_days(bucket, key)
+
+        #return {"itinerary": itinerary, "metrics": metrics}
+
+    except Exception as e:
+        logger.exception("assign_to_days_tool failed: %s", e)
+        return {"error": str(e)}
+
+@tool("call_transport_agent_api")
+def call_transport_agent_api_tool(bucket: str, key: str, sender_agent: str, session: str) -> Dict[str, Any]:
+    """Returns parsed JSON or minimal dict from the transport agent API."""
+    print("call_transport_agent_api_tool")
+    try:
+        if not callable(_local_call_transport_agent_api):
+            raise RuntimeError("Local call_transport_agent_api implementation not available")
+        resp = _local_call_transport_agent_api(bucket, key, sender_agent, session)
+        print(f"call_transport_agent_api_tool: resp ={resp}")
+        return resp
+    except Exception as e:
+        logger.exception("call_transport_agent_api_tool failed: %s", e)
+        return {"error": str(e)}
+
+
+@tool("validate_itinerary")
+def validate_itinerary_tool(bucket: str, key: str) -> Dict[
+    str, Any]:
+    """Run deterministic gate validation on the final itinerary."""
+    print("validate_itinerary_tool")
+    try:
+        if not callable(_local_validate_itinerary):
+            raise RuntimeError("Local validate_itinerary implementation not available")
+        out = _local_validate_itinerary(bucket, key)
+        return out if isinstance(out, dict) else {"result": out}
+    except Exception as e:
+        logger.exception("validate_itinerary_tool failed: %s", e)
+        return {"error": str(e)}
+
+
+# List of all tool objects for easy retrieval
+ALL_TOOLS = [score_candidates_tool,shortlist_tool,assign_to_days_tool, call_transport_agent_api_tool,
+             validate_itinerary_tool,planner_repair_tool]
+
+TOOL_MAP: Dict[str, Callable] = {getattr(t, "name", ""): t for t in ALL_TOOLS}
+ALLOWED_TOOL_NAMES = frozenset([n for n in TOOL_MAP.keys() if n])  # remove empty names
+
+def _make_diag_id(entry: MutableMapping) -> str:
+    """Create a short id for diagnostics storage."""
+    return sha256(repr(entry).encode()).hexdigest()[:12]
+
+def record_tool_incident(kind: str, details: dict, bucket: Optional[str] = None, key: Optional[str] = None) -> dict:
+    """
+    Record a structured incident for auditing. If bucket/key provided, append to that S3 JSON file's diagnostics list.
+    Returns the persisted diagnostic entry (with id and timestamp).
+    """
+    print(f"record_tool_incident {bucket} : {key}")
+    ts = int(time.time())
+    entry = {
+        "id": _make_diag_id({"kind": kind, "ts": ts, "details": details}),
+        "kind": kind,
+        "timestamp": ts,
+        "details": details,
+    }
+    logger.warning("Tool incident: %s %s", kind, details)
+
+    # Best-effort persistence: if bucket/key provided, append to payload.diagnostics.incidents
+    try:
+        if bucket and key:
+            payload = get_json_data(bucket, key) or {}
+            diagnostics = payload.get("diagnostics", {})
+            incidents = diagnostics.get("incidents", [])
+            # Avoid storing large sensitive content; truncate inputs preview
+            if "inputs" in details and isinstance(details["inputs"], str):
+                details["inputs_preview"] = details["inputs"][:1000]
+                details.pop("inputs", None)
+            incidents.append(entry)
+            diagnostics["incidents"] = incidents
+            payload["diagnostics"] = diagnostics
+            print(f"record_tool_incident {bucket} : {key}")
+            update_json_data(bucket, key, payload)
+    except Exception:
+        # Do not raise on persistence failure; we already logged the warning above
+        logger.exception("Failed to persist incident to S3 (non-fatal)")
+
+    return entry
+
+# -------------------------
+# Helpers
+# -------------------------
+def _parse_crew_result(raw: Any) -> Any:
+    """Normalize likely Crew return shapes."""
+    if isinstance(raw, str):
+        try:
+            return json.loads(raw)
+        except Exception:
+            return raw
+    if isinstance(raw, dict):
+        # Look for standard output keys in case the result is wrapped
+        for k in ("outputs", "result", "data", "choices", "parsed"):
+            if k in raw:
+                return raw[k]
+        return raw
+    return raw
+
+# -------------------------
+# PlannerAgent (owns tool calling via Crew or local)
+# -------------------------
+class PlannerAgent:
+    def __init__(self, use_crew: bool = True, crew_agent_descriptor: Optional[dict] = None, crew_timeout: int = 180):
+        """
+        use_crew: if True, tool calls are executed via Crew and @tool-wrapped functions.
+                  if False, local python functions are called directly.
+        crew_agent_descriptor: Agent descriptor passed to Crew (e.g. {"role":"PlannerAgent","goal":"..."})
+        """
+        self.use_crew = use_crew and CREW_AVAILABLE
+        self.crew_agent_descriptor = crew_agent_descriptor or {"role": "PlannerAgent",
+                                                               "goal": "Execute the planning pipeline."}
+        self.crew_timeout = crew_timeout
+
+        if self.use_crew:
+            # Setting verbose to True for debugging in invoker is often useful, but sticking to previous default
+            self.invoker = CrewToolInvoker(self.crew_agent_descriptor, timeout_seconds=crew_timeout, verbose=True)
+        else:
+            self.invoker = None
+
+    def _call_tool(self, tool_name: str, *args, **kwargs):
+        """
+        Unified tool call. If use_crew -> call via invoker.call(tool_name, inputs)
+        For Crew, inputs are packaged as a dict where positional args are mapped to function parameters.
+        """
+        if self.use_crew:
+            # bundle inputs into a serializable dict for CrewToolInvoker
+            inputs = kwargs.pop("inputs", {})  # allow direct dict
+            # Examples of positional mapping — keep minimal & explicit
+            if not inputs:
+                if tool_name in ("score_candidates", "shortlist", "validate_itinerary"):
+                    if len(args) >= 2:
+                        inputs = {"bucket": args[0], "key": args[1]}
+                elif tool_name == "assign_to_days":
+                    if len(args) >= 2:
+                        inputs = {"bucket": args[0], "key": args[1]}
+                elif tool_name == "call_transport_agent_api":
+                    if len(args) >= 4:
+                        inputs = {"bucket": args[0], "key": args[1], "caller": args[2], "session_id": args[3]}
+                elif tool_name == "planner_repair":
+                    if len(args) >= 3:
+                        inputs = {"bucket": args[0], "key": args[1], "max_edits": args[2]}
+                else:
+                    caller = inputs.get("caller") if isinstance(inputs, dict) else None
+                    tool_obj = TOOL_MAP.get(tool_name)
+                    if not tool_obj:
+                        diag = {
+                            "attempted_tool": tool_name,
+                            "allowed_tools": list(ALLOWED_TOOL_NAMES),
+                            "caller": caller or "unknown",
+                            "inputs": str(inputs)[:2000],
+                        }
+                        record_tool_incident("disallowed_tool_lookup", diag,
+                                             bucket=args[0] if isinstance(inputs, dict) else None,
+                                             key=args[1] if isinstance(inputs, dict) else None)
+                        # Fail closed: raise so orchestrator handles the error path
+                        raise RuntimeError("Requested tool is not available or not permitted. Incident logged.")
+
+            if "caller" not in inputs:
+                inputs["caller"] = "planner_agent"
+            resp = self.invoker.call(tool_name, inputs)
+            return resp
+        else:
+            # local mode - call local functions directly
+            if tool_name == "score_candidates":
+                return _local_score_candidates(*args, **kwargs)
+            if tool_name == "shortlist":
+                return _local_shortlist(*args, **kwargs)
+            if tool_name == "assign_to_days":
+                return _local_assign_to_days(*args, **kwargs)
+            if tool_name == "call_transport_agent_api":
+                return _local_call_transport_agent_api(*args, **kwargs)
+            if tool_name == "validate_itinerary":
+                return _local_validate_itinerary(*args, **kwargs)
+            if tool_name == "planner_repair":
+                return planner_repair_tool(*args, **kwargs)
+            raise RuntimeError(f"Unknown tool: {tool_name}")
+
+    def run(self, payload: Dict[str, Any], bucket: str, key: str, session_id: str) -> Dict[str, Any]:
+        """
+        Run full deterministic pipeline using internal tool-calling:
+          1) score_candidates
+          2) shortlist
+          3) assign_to_days
+          4) call_transport_agent_api
+          5) validate_itinerary
+
+        Returns the same structure asked in your spec, includes 'explanation'.
+        """
+        start = time.time()
+        diagnostics = {"run_id": session_id, "steps": []}
+        try:
+            # 1) score
+            diagnostics["steps"].append("score_candidates")
+            PIPELINE_STEP_COUNT.labels(step="score_candidates", status="started").inc()
+            score_ret = self._call_tool("score_candidates", bucket, key)
+            PIPELINE_STEP_COUNT.labels(step="score_candidates", status="success").inc()
+            print(f"score_ret ={score_ret}")
+
+            # 2) shortlist
+            diagnostics["steps"].append("shortlist")
+            PIPELINE_STEP_COUNT.labels(step="shortlist", status="started").inc()
+            shortlist_ret = self._call_tool("shortlist", bucket, key)
+            PIPELINE_STEP_COUNT.labels(step="shortlist", status="success").inc()
+            #json_data = convertCrewOutputToJson(score_ret)
+            #print(f"shortlist_ret ={shortlist_ret}")
+
+            # 3) assign to days
+            diagnostics["steps"].append("assign_to_days")
+            PIPELINE_STEP_COUNT.labels(step="assign_to_days", status="started").inc()
+            ret = self._call_tool("assign_to_days", bucket, key)
+            PIPELINE_STEP_COUNT.labels(step="assign_to_days", status="success").inc()
+            #json_data = convertCrewOutputToJson(ret)
+            #itinerary = json_data.get("itinerary")
+            #metrics = json_data.get("metrics")
+
+            # 4) transport agent API
+            diagnostics["steps"].append("call_transport_agent_api")
+            PIPELINE_STEP_COUNT.labels(step="call_transport_agent_api", status="started").inc()
+            transport_result = None
+
+            # --- START FIX: Add Retries for ConnectionResetError ---
+            MAX_RETRIES = 3
+            RETRY_DELAY = 1.0  # Initial delay in seconds
+
+            for attempt in range(MAX_RETRIES):
+                try:
+                    # Pass required positional arguments
+                    transport_result = self._call_tool("call_transport_agent_api", bucket, key, "planner_agent",
+                                                           session_id)
+                    PIPELINE_STEP_COUNT.labels(step="call_transport_agent_api", status="success").inc()
+                    print(f"transport_result ={transport_result}")
+                    # If successful, break the loop
+                    break
+                except ConnectionResetError as e:
+                    logger.warning(f"Transport tool connection failed (Attempt {attempt + 1}/{MAX_RETRIES}): {e}")
+                    if attempt + 1 == MAX_RETRIES:
+                         raise  # Re-raise error if all attempts fail
+
+                    # Exponential backoff: 1s, 2s, 4s, ...
+                    time.sleep(RETRY_DELAY * (2 ** attempt))
+                except Exception as e:
+                    # Break on non-ConnectionReset errors (like missing argument, logic error, etc.)
+                     logger.exception("Transport tool failed with non-network error: %s", e)
+                     transport_result = {"error": str(e)}
+                     break
+
+             # --- END FIX ---
+
+            # 5) validate itinerary
+            diagnostics["steps"].append("validate_itinerary")
+            PIPELINE_STEP_COUNT.labels(step="validate_itinerary", status="started").inc()
+            ret = self._call_tool("validate_itinerary", bucket, key)
+            gates = convertCrewOutputToJson(ret)
+            PIPELINE_STEP_COUNT.labels(step="validate_itinerary", status="success").inc()
+            # record gate failures (per-gate counter)
+            if isinstance(gates, dict):
+                for gate_name, gate_val in gates.items():
+                    # assume gate boolean or structured dict with 'ok' field
+                    try:
+                        if gate_name == "all_ok":
+                            continue
+                        ok = False
+                        if isinstance(gate_val, dict):
+                            ok = gate_val.get("ok", gate_val.get("result", False))
+                        else:
+                            ok = bool(gate_val)
+                        if not ok:
+                            GATE_FAILURES.labels(gate=gate_name).inc()
+                    except Exception:
+                        # safe fallback
+                        pass
+            # success path
+            run_success = True
+            ITINERARIES_CREATED.labels(status="success").inc()
+
+            if not gates.get("all_ok"):
+                #call planner_repair (LLM) with current state
+                diagnostics["steps"].append("planner_repair")
+                ret = self._call_tool("planner_repair", bucket, key,max_edits=1)
+                planner_repair_resp = parse_planner_repair_response(ret)
+                print(f"planner_repair_resp ={planner_repair_resp}")
+                edits = planner_repair_resp.get("edits", [])
+
+                if not edits:
+                    # no repair possible by LLM using current candidates -> fall back to deterministic tweaks or return failure
+                    diagnostics["repair"] = {"status": "cannot_repair", "reason": planner_repair_resp.get("explain_summary")}
+                else:
+                    # 3) apply edits deterministically
+                    # build map
+                    payload = get_json_data(bucket, key)
+                    shortlist = payload.get("shortlist", {})
+                    itinerary = payload.get("itinerary", {})
+                    shortlist_by_id = {p["place_id"]: p for p in shortlist.get("places", [])}
+
+                    new_itinerary = apply_edits_to_itinerary(itinerary, edits, shortlist_by_id)
+                    print(f"new_itinerary ={new_itinerary}")
+                    # 5) re-run transport & validate
+                    transport_result = self._call_tool("call_transport_agent_api", bucket, key, "planner_agent",
+                                                       session_id)
+                    new_gates = self._call_tool("validate_itinerary", bucket, key)
+
+                    # 6) report repair result
+                    diagnostics["repair"] = {
+                        "planner_repair_resp": planner_repair_resp,
+                        "transport_result": transport_result,
+                        "gates_after": new_gates
+                    }
+                    itinerary = new_itinerary
+                    gates = new_gates
+
+                    # 4) persist or overwrite file used by transport/validation tools (so subsequent calls read updated itinerary)
+                    payload["itinerary"] = itinerary
+                    payload["gates"] = gates
+
+            #diagnostics["duration_s"] = round(time.time() - start, 3)
+            #payload["diagnostics"] = diagnostics
+            #update_json_data(bucket, key, payload)
+            return {
+                "success": True,
+                "itinerary": payload["itinerary"],
+                "metrics": payload["metrics"],
+                "gates": gates,
+                #"explanation": explanation,
+                "transport_result": transport_result,
+                "diagnostics": diagnostics
+            }
+
+        except Exception as e:
+            logger.exception("PlannerAgent.run failed: %s", e)
+            ITINERARIES_CREATED.labels(status="failure").inc()
+            diagnostics["error"] = str(e)
+            diagnostics["traceback"] = traceback.format_exc()
+            return {"success": False, "error": str(e), "diagnostics": diagnostics}
+        finally:
+            duration = time.time() - start
+            LAST_RUN_DURATION.observe(duration)
+            diagnostics["duration_s"] = round(duration, 3)
+            LAST_RUN_GAUGE.set(time.time())
+            update_json_data(bucket, key, payload)  # ensure metrics persisted with diagnostics

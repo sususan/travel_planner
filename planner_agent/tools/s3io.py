@@ -13,20 +13,28 @@ def put_json(bucket_name: str,key: str, obj: dict) -> str:
     return full_key
 
 def get_json_data (bucket_name: str, key: str) -> dict:
-    if not bucket_name:
+    """if not bucket_name:
         raise RuntimeError("S3_BUCKET env not set")
     full_key = f"{key}"
     obj = _s3.get_object(Bucket=bucket_name, Key=full_key)
-    return json.loads(obj["Body"].read().decode("utf-8"))
+    return json.loads(obj["Body"].read().decode("utf-8"))"""
+    with open(key, "r") as f:
+        payload = json.load(f)
+    return payload
 
 def update_json_data(bucket_name: str, key: str, payload: dict):
-    if not bucket_name:
+    print("update_json_data")
+    """if not bucket_name:
         raise RuntimeError("S3_BUCKET env not set")
 
     s3 = boto3.client('s3')
     bucket_name = bucket_name  # Replace with your bucket name
     file_key = f"{key}"  # Replace with the file path in the bucket
-    s3.put_object(Bucket=bucket_name, Key=file_key, Body=json.dumps(payload))
+    s3.put_object(Bucket=bucket_name, Key=file_key, Body=json.dumps(payload))"""
+    #payload = json.dumps(payload)
+    #print(payload)
+    with open(key, 'w') as f:
+        json.dump(payload, f, indent=4)
 
 
 def upload_pdf_to_s3(bucket_name, key, pdf_bytes):

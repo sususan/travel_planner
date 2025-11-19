@@ -2,6 +2,7 @@
 # ---------- UPDATED ----------
 # Helpers: imputation, aggregation, data quality penalty, transport proxy, haversine.
 # NOTE: This file was updated to return per-age price tiers and compute budget aggregations.
+import ast
 import re
 from collections import deque, defaultdict
 from datetime import datetime
@@ -141,13 +142,13 @@ def impute_price(candidate: dict, medians_by_type: dict = None) -> dict:
         "park": 0.0,
         "garden": 0.0,
         "museum": 20.0,
-        "zoo": 40.0,
-        "theme_park": 75.0,
+        "zoo": 30.0,
+        "theme_park": 55.0,
         "temple": 0.0,
-        "landmark": 35.0,
+        "landmark": 25.0,
         "dining": 20.0,
         "food": 20.0,
-        "restaurant": 35.0
+        "restaurant": 30.0
     }
     adult_v = 15.0
     for t in cand_vocab:
@@ -990,3 +991,35 @@ def _default_fix_for_gate(gname: str) -> str:
         "default": "Consider relaxing one constraint (budget/pace/coverage) or allow the planner to propose 1-2 swaps."
     }
     return mapping.get(gname, mapping["default"])
+
+def flatten_shortlist_dict(d: Dict[str, List[dict]]) -> List[Dict]:
+    flat = []
+    for v in d.values():
+        if isinstance(v, list):
+            flat.extend(v)
+    return flat
+
+def convertCrewOutputToJson(ret):
+    """
+    Convert a string (ret) to a Python dictionary and then to JSON.
+    Enhanced to include proper validation and error handling.
+    """
+    if not isinstance(ret, str):
+        raise ValueError("Input should be a string.")
+
+    try:
+        # First, attempt to parse JSON directly
+        # Assuming ret is a JSON string, this will succeed
+        json_data = json.loads(ret)
+        return json_data
+
+    except json.JSONDecodeError:
+        # If JSON parsing fails, attempt to use ast.literal_eval
+        try:
+            data = ast.literal_eval(ret)
+            if not isinstance(data, (dict, list)):  # Ensure it's a valid Python structure
+                raise ValueError("Parsed data is not a dictionary or list.")
+            return data
+
+        except (ValueError, SyntaxError) as e:
+            raise ValueError(f"Failed to parse ret. Ensure it contains valid JSON or Python literals. Error: {e}")

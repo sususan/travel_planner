@@ -17,6 +17,7 @@ from planner_agent.tools.helper import dq_penalty_for_item, compute_interest_sco
     _get_open_hours_for_weekday, _candidate_interest_terms, _is_accessible, _normalize, _diet_fit_score, _cluster_id, \
     _pace_minutes, _minutes_for_item, _is_dining, _slot_times, _default_fix_for_gate, _generate_alternatives, \
     _compute_item_score, pick_by_cluster_roundrobin, eco_score_from_low_carbon, aggregate_budget_range, _lunch_minutes
+from planner_agent.tools.s3io import get_json_data, put_json, update_json_data
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -24,41 +25,18 @@ logger.setLevel(logging.INFO)
 # ----------------------------
 # 1) score_candidates
 # ----------------------------
-"""
-12 rules
 
-Uninterest hard filter — drop any candidate whose tokens / type / tags intersect the user's uninterests.
-
-Distance uses accommodation as origin — if accommodation lat/lon present, compute haversine distance to candidate; otherwise fallback distance = 5.0 km default.
-
-Interest score (soft match) — Jaccard-ish overlap between user interests and candidate terms (type/tags/name); neutral default = 0.6 when no interests provided.
-
-Accessibility boost — _is_accessible returns boolean and accessibility component = 1.0 if accessible else 0.7.
-
-Eco (low_carbon) normalized score — normalized from low_carbon_score to 0..1 using dataset min/max.
-
-Distance normalized/inverted — closer = higher score (normalize & invert).
-
-Price normalized/inverted — lower adult ticket price = higher score (normalize & invert).
-
-Opening hours normalized — compute open-hours for the itinerary weekday and normalize (more open hours → higher score).
-
-Rating normalized — rating scaled into 0..1.
-
-Diet fit soft scoring — for dining: if diet preference present, check tags/name for synonyms (vegan/halal/etc.) → score 1.0 if match, else 0.5; non-dining returns neutral 0.7. (So dining filtered by diet only via score, not filtered out.)
-
-Weighted composite score with configurable weights — default weight vector is used but can be overridden from requirements.weights.
-
-Expose metadata / clusterization — each scored item includes cluster ID (geo_cluster or grid fallback), distance, price and token terms for downstream decisions.
-"""
-
-def score_candidates(payload: dict, weights: Optional[dict] = None) -> Dict[str, dict]:
+def score_candidates(bucket: str, key: str, weights: None) -> dict:
     """
     Compute composite score per candidate using only schema, not sample values.
     Uses user-provided weights if present: payload["requirements"]["weights"].
     Feature weights default (sum ≈ 1.0):
       - interest, access, eco, distance, price, opening, rating, diet
     """
+    print("!!score_candidates!!")
+    print(f"bucket={bucket}")
+    print(f"key={key}")
+    payload = get_json_data(bucket, key)
     req = payload.get("requirements", {})
     cands = ((payload.get("retrieval", {}) or {}).get("places_matrix", {}) or {}).get("nodes", []) or []
     days = _date_span_days(req)
@@ -83,7 +61,7 @@ def score_candidates(payload: dict, weights: Optional[dict] = None) -> Dict[str,
     # Preferences
     interests = _to_lower_set(_safe_get(req, ["optional", "interests"], []))
     uninterests = _to_lower_set(_safe_get(req, ["optional", "uninterests"], []))
-    diet_pref =_safe_get(req, ["optional", "dietary_preferences"])
+    diet_pref = _safe_get(req, ["optional", "dietary_preferences"])
     accom_lat, accom_lon = _accom_latlon(req)
 
     # Precompute bounds
@@ -97,7 +75,8 @@ def score_candidates(payload: dict, weights: Optional[dict] = None) -> Dict[str,
         dist = _haversine_km(accom_lat, accom_lon, lat, lon) if (accom_lat is not None and lat is not None) else 5.0
         dist_vals.append(dist)
         price = impute_price(it)
-        total_price = price["adults"] * number_adult + price["children"] * number_child + price["senior"] * number_senior
+        total_price = price["adults"] * number_adult + price["children"] * number_child + price[
+            "senior"] * number_senior
         price_vals.append(total_price)
         open_vals.append(_get_open_hours_for_weekday(it, weekday))
         rating_vals.append(float(it.get("rating", 0.0) or 0.0))
@@ -111,7 +90,7 @@ def score_candidates(payload: dict, weights: Optional[dict] = None) -> Dict[str,
 
     out: Dict[str, dict] = {}
     for it in cands:
-        pid = it.get("place_id") or it.get("id") or f"item_{len(out)+1}"
+        pid = it.get("place_id") or it.get("id") or f"item_{len(out) + 1}"
 
         # Hard filter: uninterests
         it_terms = _candidate_interest_terms(it)
@@ -124,21 +103,14 @@ def score_candidates(payload: dict, weights: Optional[dict] = None) -> Dict[str,
         lat, lon = _get_geo(it)
         dist = _haversine_km(accom_lat, accom_lon, lat, lon) if (accom_lat is not None and lat is not None) else 5.0
 
-        """interest_score = 0.0
-        if interests:
-            # Jaccard-ish overlap between user interests and candidate terms/types/tags
-            overlap = interests & (it_terms | {it_type} | it_tags)
-            interest_score = len(overlap) / max(len(interests), 1)
-        else:
-            interest_score = 0.6  # neutral if no explicit interests"""
-
         interest_score = compute_interest_score(interests, it_terms, it_type, it_tags)
 
         access_score = 1.0 if _is_accessible(it) else 0.7
-        eco_score = eco_score_from_low_carbon (float(it.get("low_carbon_score", 5.0) or 5.0))
+        eco_score = eco_score_from_low_carbon(float(it.get("low_carbon_score", 5.0) or 5.0))
         distance_score = _normalize(dist, dmin, max(dmax, dmin + 0.01), invert=True)
         price = impute_price(it)
-        total_price = price["adults"] * number_adult + price["children"] * number_child + price["senior"] * number_senior
+        total_price = price["adults"] * number_adult + price["children"] * number_child + price[
+            "senior"] * number_senior
         price_score = _normalize(total_price, pmin, max(pmax, pmin + 0.01), invert=True)
         opening_score = _normalize(_get_open_hours_for_weekday(it, weekday), omin, max(omax, omin + 0.01))
 
@@ -146,14 +118,14 @@ def score_candidates(payload: dict, weights: Optional[dict] = None) -> Dict[str,
         diet_score = _diet_fit_score(it, diet_pref)
 
         score = (
-            weights.get("interest", 0) * interest_score +
-            weights.get("access", 0) * access_score +
-            weights.get("eco", 0) * eco_score +
-            weights.get("distance", 0) * distance_score +
-            weights.get("price", 0) * price_score +
-            weights.get("opening", 0) * opening_score +
-            weights.get("rating", 0) * rating_score +
-            weights.get("diet", 0) * diet_score
+                weights.get("interest", 0) * interest_score +
+                weights.get("access", 0) * access_score +
+                weights.get("eco", 0) * eco_score +
+                weights.get("distance", 0) * distance_score +
+                weights.get("price", 0) * price_score +
+                weights.get("opening", 0) * opening_score +
+                weights.get("rating", 0) * rating_score +
+                weights.get("diet", 0) * diet_score
         )
         # inside score_candidates loop (where 'it' is the candidate) -- after computing `score`:
         # apply a data-quality penalty to nudge planner/human review when metadata missing
@@ -184,38 +156,17 @@ def score_candidates(payload: dict, weights: Optional[dict] = None) -> Dict[str,
             "terms": sorted(list(it_terms | it_tags | {it_type})),
             "item": it,
         }
-
-    return out
+    payload["scored"] = out
+    #fileName = "../process/20251107T200155_02bb2fc0.json"
+    #print(f"fileName: {key} : payload: {payload}")
+    update_json_data(bucket, key, payload)
+    return {"status" : "success"}
 
 # ----------------------------
 # 2) shortlist
 # ----------------------------
-"""
-11 rules
 
-Days <= 0 => empty shortlist (early exit).
-
-Budget enforcement while selecting — running_cost compared to budget_total to avoid exceeding budget when adding attractions/dining. (Note: budget variable read from requirements["budget"] in this implementation.)
-
-Pace → minutes capacity — pace string mapped to minutes/day via _pace_minutes (e.g., "slow" → 300 min) then subtract a daily_buffer_min (45 min) to get usable minutes/day; floor at 60 min.
-
-One lunch per day guarantee — pick one dining item per day, prefer different clusters (spread) when possible; top-up if not enough dining candidates.
-
-Reserve lunch time & cost before attractions — lunches consume lunch_minutes_total and running_cost deducted from total usable minutes / budget before picking attractions.
-
-Attraction total time budget — remaining minutes after lunches allocated to attractions total (not per day).
-
-Dominant type time cap (~60%) — any one attraction type may not consume more than ≈60% of the attraction time budget (implemented as minutes per type). This is a soft cap enforced during selection.
-
-Two-pass selection — pass 1: prefer items that add new interest terms (diversity) or until half of available time used; pass 2: top up to fill remaining time (still obey type cap & budget).
-
-Duration inference — visit duration uses candidate fields (visit_minutes, est_duration_min, duration_min, etc.) or type-based fallbacks; dining uses _lunch_minutes. These durations drive time checks.
-
-Selected_time + dur and running_cost checks — each candidate must fit remaining total minutes and budget before being accepted.
-
-Interest diversity nudging — prefer items that cover uncovered interest terms (if interests provided).
-"""
-def shortlist(req: dict, scored: Dict[str, dict]) -> Dict[str, List[dict]]:
+def shortlist(bucket: str, key: str) -> dict:
     """
     Improved pace-aware shortlist builder with spatially-aligned lunch selection.
 
@@ -225,8 +176,14 @@ def shortlist(req: dict, scored: Dict[str, dict]) -> Dict[str, List[dict]]:
       - Deduplicates by place_id.
       - Preserves previous time/budget logic for attractions selection.
     """
-    #req = payload.get("requirements", {}) or {}
-
+    print("!!shortlist!!")
+    print(f"key={key}")
+    payload = get_json_data(bucket, key)
+    #print(f"payload={payload}")
+    req = payload.get("requirements", {}) or {}
+    #print(f"requirements{req}")
+    scored = payload.get("scored", {}) or {}
+    #print(f"scored{scored}")
     # Days
     days = _date_span_days(req)
     if days <= 0:
@@ -243,14 +200,16 @@ def shortlist(req: dict, scored: Dict[str, dict]) -> Dict[str, List[dict]]:
     interests = _to_lower_set(_safe_get(req, ["optional", "interests"], []))
 
     # Pace to time capacity
-    per_day_inminute = _pace_minutes(req.get("pace"))         # 360 / 420 / 540
-    daily_buffer_min = 30                                     # transit/slack each day (tunable)
+    per_day_inminute = _pace_minutes(req.get("pace"))  # 360 / 420 / 540
+    daily_buffer_min = 30  # transit/slack each day (tunable)
     usable_minutes_per_day = max(60, per_day_inminute - daily_buffer_min)
     total_usable_minutes = usable_minutes_per_day * days
 
     # Tunables (override via requirements if desired)
-    lunch_max_distance_km = float(req.get("lunch_max_distance_km", 12.0))  # prefer lunches within this distance from cluster centroid
-    lunch_search_radius_km = float(req.get("lunch_search_radius_km", 20.0))  # fallback search radius when looking for near lunches
+    lunch_max_distance_km = float(
+        req.get("lunch_max_distance_km", 12.0))  # prefer lunches within this distance from cluster centroid
+    lunch_search_radius_km = float(
+        req.get("lunch_search_radius_km", 20.0))  # fallback search radius when looking for near lunches
 
     # Sort scored items by score desc
     items_sorted = sorted(scored.values(), key=lambda x: x.get("score", 0.0), reverse=True)
@@ -267,7 +226,7 @@ def shortlist(req: dict, scored: Dict[str, dict]) -> Dict[str, List[dict]]:
         try:
             lat = float(geo.get("latitude"))
             lon = float(geo.get("longitude"))
-            return f"{round(lat,2)}_{round(lon,2)}"
+            return f"{round(lat, 2)}_{round(lon, 2)}"
         except Exception:
             return str(item.get("cluster") or place_id_of(entry) or "unknown_cluster")
 
@@ -298,7 +257,8 @@ def shortlist(req: dict, scored: Dict[str, dict]) -> Dict[str, List[dict]]:
         # compute group cost (use impute_price helper if available)
         try:
             price_tiers = impute_price(item)
-            group_est_price = price_tiers["adults"] * adults + price_tiers["children"] * children + price_tiers["senior"] * seniors
+            group_est_price = price_tiers["adults"] * adults + price_tiers["children"] * children + price_tiers[
+                "senior"] * seniors
         except Exception:
             group_est_price = float(c.get("_group_est_price", 0.0) or 0.0)
         c["_group_est_price"] = group_est_price
@@ -334,7 +294,7 @@ def shortlist(req: dict, scored: Dict[str, dict]) -> Dict[str, List[dict]]:
             non_dining_pool.append(c)
 
     # ---- Build cluster centroids from attraction candidates ----
-    cluster_coords = {}   # cluster -> list of (lat, lon)
+    cluster_coords = {}  # cluster -> list of (lat, lon)
     cluster_score = collections.Counter()  # cluster -> cumulative score
     for a in non_dining_pool:
         cl = a.get("_cluster")
@@ -484,8 +444,8 @@ def shortlist(req: dict, scored: Dict[str, dict]) -> Dict[str, List[dict]]:
         dur = int(x.get("_est_minutes", 60))
         if selected_time + dur > remaining_minutes_for_attractions:
             continue
-        #if running_cost + float(x.get("_group_est_price", 0.0) or 0.0) > budget_total:
-            #continue
+        # if running_cost + float(x.get("_group_est_price", 0.0) or 0.0) > budget_total:
+        # continue
 
         terms = set(map(str.lower, (x.get("terms") or [])))
         adds_new = bool((terms - covered_interest_terms) & interests) if interests else True
@@ -511,8 +471,8 @@ def shortlist(req: dict, scored: Dict[str, dict]) -> Dict[str, List[dict]]:
             dur = int(x.get("_est_minutes", 60))
             if selected_time + dur > remaining_minutes_for_attractions:
                 continue
-            #if running_cost > budget_total:
-                #continue
+            # if running_cost > budget_total:
+            # continue
             selected.append(x)
             selected_time += dur
             time_by_type[((x.get("type") or "") or "").lower()] += dur
@@ -521,10 +481,12 @@ def shortlist(req: dict, scored: Dict[str, dict]) -> Dict[str, List[dict]]:
             if selected_time >= remaining_minutes_for_attractions:
                 break
 
-    return {
+    payload["shortlist"] = {
         "attractions": selected,
         "dining": lunch_selected
     }
+    update_json_data(bucket, key, payload)
+    return {"status" : "success"}
 
 # ----------------------------
 # 3) assign_to_days
@@ -551,14 +513,17 @@ Metrics computed — total ticket spend (morning+afternoon), approx distance (ha
 Afternoon/morning ticket cost counted but lunch excluded from ticket spend (implicit rule in bookkeeping).
 """
 
-def assign_to_days(req: dict, shortlist_out: Dict[str, List[dict]]) -> Tuple[Dict[str, dict], Dict[str, Any]]:
+def assign_to_days(bucket: str, key: str) -> dict:
     """
     Same behavior as before but:
       - Deduplicates attraction candidates by place_id (keep highest score)
       - Immediately reserves a candidate when it is selected (so it cannot be reselected later)
       - Lunch is reserved immediately when chosen
     """
-    #req = payload.get("requirements", {})
+    print("!!assign_to_days!!")
+    payload = get_json_data(bucket, key)
+    req = payload.get("requirements", {})
+    shortlist_out = payload.get("shortlist", {})
     group_counts = req.get("travelers", {}) or {}
     number_adult = group_counts.get("adults", 1)
     number_child = group_counts.get("children", 0)
@@ -567,7 +532,7 @@ def assign_to_days(req: dict, shortlist_out: Dict[str, List[dict]]) -> Tuple[Dic
     start_dt = _start_date(req)
     slot_times = _slot_times(req)
     accom_lat, accom_lon = _accom_latlon(req)
-    print("shortlist_out:", shortlist_out)
+    # print("shortlist_out:", shortlist_out)
     raw_atts = shortlist_out.get("attractions", [])[:]
     lunches = shortlist_out.get("dining", [])[:]
 
@@ -613,7 +578,8 @@ def assign_to_days(req: dict, shortlist_out: Dict[str, List[dict]]) -> Tuple[Dic
             return 1e9
         return min(_haversine_km(accom_lat, accom_lon, *_get_geo(m["item"])) for m in members)
 
-    clusters = sorted({x.get("cluster") for x in (atts + lunches) if x.get("cluster") is not None}, key=cluster_distance)
+    clusters = sorted({x.get("cluster") for x in (atts + lunches) if x.get("cluster") is not None},
+                      key=cluster_distance)
     if not clusters:
         clusters = ["cluster_unknown"]
 
@@ -681,7 +647,9 @@ def assign_to_days(req: dict, shortlist_out: Dict[str, List[dict]]) -> Tuple[Dic
                     used_att_ids.add(pid)
 
         # ---------- PICK LUNCH (single) ----------
-        lunch = next((l for l in lunch_by_cluster.get(cluster, []) if l.get("item", {}).get("place_id") not in used_lunch_ids), None)
+        lunch = next(
+            (l for l in lunch_by_cluster.get(cluster, []) if l.get("item", {}).get("place_id") not in used_lunch_ids),
+            None)
         if lunch is None:
             lunch = next((l for l in lunches if l.get("item", {}).get("place_id") not in used_lunch_ids), None)
         if lunch and lunch.get("item", {}).get("place_id"):
@@ -690,7 +658,8 @@ def assign_to_days(req: dict, shortlist_out: Dict[str, List[dict]]) -> Tuple[Dic
         # ---------- PICK MULTIPLE FOR AFTERNOON ----------
         afternoon_items = []
         remaining = afternoon_capacity
-        afternoon_pool = atts_by_cluster.get(cluster, []) + list(itertools.chain.from_iterable(atts_by_cluster.values()))
+        afternoon_pool = atts_by_cluster.get(cluster, []) + list(
+            itertools.chain.from_iterable(atts_by_cluster.values()))
         # avoid items already reserved (either earlier days or morning of same day)
         afternoon_pool = [c for c in afternoon_pool if c.get("item", {}).get("place_id") not in used_att_ids]
 
@@ -746,7 +715,8 @@ def assign_to_days(req: dict, shortlist_out: Dict[str, List[dict]]) -> Tuple[Dic
             if not pid:
                 continue
             price = impute_price(it)
-            total_tickets_cost += price["adults"] * number_adult + price["children"] * number_child + price["senior"] * number_senior
+            total_tickets_cost += price["adults"] * number_adult + price["children"] * number_child + price[
+                "senior"] * number_senior
             all_interest_terms |= _candidate_interest_terms(it)
             if _is_accessible(it):
                 accessible_hits += 1
@@ -758,8 +728,10 @@ def assign_to_days(req: dict, shortlist_out: Dict[str, List[dict]]) -> Tuple[Dic
         "interest_terms_covered": sorted(list(all_interest_terms))[:40],
         "accessible_stops": accessible_hits,
     }
-    return itinerary, metrics
-
+    payload["itinerary"] = itinerary
+    payload["metrics"] = metrics
+    update_json_data(bucket, key, payload)
+    return {"status" : "success"}
 
 def call_transport_agent_api(bucket_name: str, key: str, sender_agent: str, session: str) -> Dict:
     """
@@ -775,36 +747,44 @@ def call_transport_agent_api(bucket_name: str, key: str, sender_agent: str, sess
     headers = {"Content-Type": "application/json", "X-API-Key": X_API_Key}
     payload = {
         "bucket_name": bucket_name,
-        "key": Transport_Agent_Folder +"/"+ key,
+        "key": Transport_Agent_Folder + "/" + "20251107T200155_02bb2fc0.json",
         "sender_agent": sender_agent,
         "session": session
     }
     print(f"Calling Transport Agent API payload: {payload}")
     try:
         response = requests.post(url, json=payload, headers=headers)
-        print(f"Transport Agent response: {response.json()}")
+        #print(f"Transport Agent response: {response.json()}")
         transport_options = {}
         if response:
             response_data = response.json() if response else {}
-            print(f"Transport Agent response: {response_data}")
+            #print(f"Transport Agent response: {response_data}")
             statusCode = response.status_code
             if statusCode == 200 or statusCode == 202:
                 transport_options = response_data.get("result", {})
             else:
                 transport_options = {}
                 logger.warning(f"Transport Agent returned non-200 status code: {statusCode}")
+
+        file_payload = get_json_data(bucket_name, key)
+        file_payload["transport_options"] = transport_options
+        update_json_data(bucket_name, key, file_payload)
         return transport_options
     except requests.RequestException as e:
         logging.error(f"Transport Agent API call failed: {e}")
-        return {}
+        return {"status" : "error"}
 
-
-def validate_itinerary(itinerary: Dict[str, Any], metrics: Dict[str, Any], payload: dict) -> Dict[str, Any]:
+def validate_itinerary(bucket: str, key: str) -> Dict[str, Any]:
     """
     Validate gates (budget, coverage, pace) and return gates dict.
     This is intentionally deterministic; agentic decisions only occur in PlannerAgent.
     """
+    print("!!validate_itinerary!!")
+    print(f"key={key}")
+    payload = get_json_data(bucket, key)
     req = payload.get("requirements", {})
+    itinerary = payload.get("itinerary", {})
+    metrics = payload.get("metrics", {})
     budget_cap = float(req.get("budget_total_sgd"))
     gates = {"budget_ok": True, "coverage_ok": True, "pace_ok": True, "uncertainty_escalate": False}
 
@@ -815,10 +795,10 @@ def validate_itinerary(itinerary: Dict[str, Any], metrics: Dict[str, Any], paylo
             for item in plan.get(slot, {}).get("items", []):
                 if item:
                     scheduled_items.append({"item": item})
-    #number_adult = _safe_get(req, ["optional", "adults"]) or 1
-    #number_child = _safe_get(req, ["optional", "children"]) or 0
-    #number_senior = _safe_get(req, ["optional", "senior"]) or 0
-    group_counts = req.get("travelers")#, {"adults":number_adult,"children":number_child,"senior":number_senior})
+    # number_adult = _safe_get(req, ["optional", "adults"]) or 1
+    # number_child = _safe_get(req, ["optional", "children"]) or 0
+    # number_senior = _safe_get(req, ["optional", "senior"]) or 0
+    group_counts = req.get("travelers")  # , {"adults":number_adult,"children":number_child,"senior":number_senior})
     agg = aggregate_budget_range(scheduled_items, medians_by_type=None, group_counts=group_counts)
     total_transport_cost = sum(plan.get("metrics", {}).get("total_travel_cost_sgd", 0.0) for plan in itinerary.values())
     expected_total = agg["expected"] + total_transport_cost
@@ -850,12 +830,16 @@ def validate_itinerary(itinerary: Dict[str, Any], metrics: Dict[str, Any], paylo
             gates["pace_ok"] = False
             break
 
-    gates["all_ok"] = gates["budget_ok"] and gates["coverage_ok"] and gates["pace_ok"] # and not gates["uncertainty_escalate"]
+    gates["all_ok"] = gates["budget_ok"] and gates["coverage_ok"] and gates[
+        "pace_ok"]  # and not gates["uncertainty_escalate"]
     gates["expected_spend_sgd"] = round(expected_total, 2)
     gates["max_spend_sgd"] = round(max_total, 2)
-    #gates["unknown_frac"] = agg["unknown_frac"]
-    #gates["uncertainty_ratio"] = agg["uncertainty_ratio"]
+    # gates["unknown_frac"] = agg["unknown_frac"]
+    # gates["uncertainty_ratio"] = agg["uncertainty_ratio"]
+    payload["gates"] = gates
+    update_json_data(bucket, key, payload)
     return gates
+
 
 # ----------------------------
 # 4) explain
@@ -890,15 +874,18 @@ def explain(requirements: Dict, itinerary: Dict[str, dict], metrics: Dict[str, A
                 typ = str(entry.get("type", "attraction")).title()
                 cluster = str(entry.get("geo_cluster_id") or _cluster_id(entry))
                 price = impute_price(entry)
-                total_price= price["adults"] * number_adult + price["children"] * number_child + price["senior"] * number_senior
-    
+                total_price = price["adults"] * number_adult + price["children"] * number_child + price[
+                    "senior"] * number_senior
+
                 access = "✓ accessible" if _is_accessible(entry) else "—"
-                lines.append(f"  • {slot.title()} {t}: {name}  [{typ}, {cluster}] — ticket ~SGD {total_price:.0f} {access}")
+                lines.append(
+                    f"  • {slot.title()} {t}: {name}  [{typ}, {cluster}] — ticket ~SGD {total_price:.0f} {access}")
         lines.append("")
 
     lines.append("Why these picks?")
     lines.append("- Selections favor places that match stated interests, are closer to the accommodation when known,")
-    lines.append("  are budget-aware when you provided a budget, include one lunch per day, and balance attraction types.")
+    lines.append(
+        "  are budget-aware when you provided a budget, include one lunch per day, and balance attraction types.")
     lines.append("- Ordering is cluster-aware to reduce transit time; afternoon differs in vibe when possible.")
     lines.append("- Ordering is cluster-aware to reduce transit time; afternoon differs in vibe when possible.")
     return "\n".join(lines)
